@@ -1,3 +1,11 @@
 [build]
   command = "npm run build && npm run check:bundle"
   publish = ".next"
+
+# Next.js runtime: turns the .next build into server functions. Declared here because
+# the Netlify site was created before the repo held a Next.js app, so it was never
+# auto-detected. Without it Netlify publishes .next as static files: every page 404s
+# and server build output becomes downloadable (security framework control 14).
+# Not version-pinned, per Netlify guidance; it updates on each build.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
