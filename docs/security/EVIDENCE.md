@@ -23,12 +23,18 @@ From the ITWM Security Framework v3.1, Appendix A. Tier C. Framework version in 
 | 14 | Hosting, deployment and caching | Yes | Rich | `productionBrowserSourceMaps: false` (0 .map files in .next/static); `use cache` holds public data only. Staging database for previews and preview password pending (Task 12) | In progress | 2026-10-29 |
 | 15 | Logging, error handling and detection | Yes | Rich | `src/app/error.tsx` and `not-found.tsx` show generic copy only; no error details rendered | Implemented | 2026-10-29 |
 | 16 | Security testing, backup and recovery | Yes | Rich | | Not started | |
-| 17 | Agency access and credential management | Yes | Rich | | Not started | |
+| 17 | Agency access and credential management | Yes | Rich | Both Supabase projects (production `ljxjzvpdaeolytxakpog`, staging `naxngnrzjpdqvuphgbht`) sit in the Into The Wild Marketing organisation, not a Carbon Offroad one. See exception EX-01 | Exception | 2026-10-29 |
 | 18 | Domain, DNS and email authentication | Yes | Rich | | Not started | |
 | 19 | Forms, lead data and outbound email | Yes | Rich | | Not started | |
 | 20 | Third-party scripts, tags and tracking | Yes | Rich | | Not started | |
 | 21 | AI features and chat assistants | N/A: the Academy has no AI features. Re-assess if one is added | Rich | | N/A | |
 | 22 | Availability, abuse protection and vulnerability disclosure | Yes | Rich | `public/.well-known/security.txt` (RFC 9116, expires 2027-10-28). `security@carbonoffroad.com.au` mailbox must exist before merge | In progress | 2026-10-29 |
+
+## Exceptions (framework section 1)
+
+| ID | Control | Exception | Justification | Compensating controls | Expiry | Approved by |
+|---|---|---|---|---|---|---|
+| EX-01 | 17 | Supabase production and staging projects are in the Into The Wild Marketing organisation instead of a Carbon Offroad-owned one. Staging costs US$10/month on ITWM's Pro plan | Keeps the build moving while the Carbon Offroad organisation is set up | Both projects hold placeholder content only, no personal data. RLS verified on staging and locally. Access limited to Rich's named account. No production data until Phase 3 | **Before any real personal data is stored (Phase 3), and in any case before the Phase 7 release gate.** Fix by transferring both projects to a Carbon Offroad organisation | Rich, Sales and Marketing Manager, in chat, 29 October 2026 |
 
 ## Release record
 
