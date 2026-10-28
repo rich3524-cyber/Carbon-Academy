@@ -13,7 +13,7 @@ At the start of each phase, paste the kick-off prompt into Claude Code. Claude C
 | Phase | Status | Notes |
 |---|---|---|
 | 0. Accounts and assets | In progress | Rich. Supabase, Netlify, logo SVGs and brand guidelines done |
-| 1. Foundation | Not started | |
+| 1. Foundation | Done | Live at https://carbonoffroadacademy.netlify.app (PR #1, fix PR #8). Open before Phase 2: home copy and product names approval, security@ mailbox, branch protection on main, Dependabot PR triage |
 | 2. Video library | Not started | |
 | 3. Accounts and progress | Not started | |
 | 4. Quizzes | Not started | |
@@ -22,7 +22,7 @@ At the start of each phase, paste the kick-off prompt into Claude Code. Claude C
 | 7. Launch readiness | Not started | |
 | 8. Integrations (post-launch) | Not started | |
 
-Last updated: 28 October 2026
+Last updated: 29 October 2026
 
 ---
 

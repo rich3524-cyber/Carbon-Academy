@@ -7,7 +7,7 @@ From the ITWM Security Framework v3.1, Appendix A. Tier C. Framework version in 
 
 | ID | Control | Applicable? | Owner | Evidence / link | Result | Approved date |
 |---|---|---|---|---|---|---|
-| 01 | HTTPS and TLS | Yes | Rich | | Not started | |
+| 01 | HTTPS and TLS | Yes | Rich | Production on Netlify serves HTTPS with HSTS (`max-age=31536000; includeSubDomains; preload`, set by Netlify on *.netlify.app). App HSTS header ready for the academy domain. CAA and domain setup due in Phase 7 | In progress | 2026-10-29 |
 | 02 | Authentication and account recovery | Yes | Rich | | Not started | |
 | 03 | MFA and step-up | Yes | Rich | | Not started | |
 | 04 | Authorisation and least privilege | Yes | Rich | `tests/db/rls.test.ts` (8 tests): drafts hidden, counts exclude drafts, anon insert/update blocked. Mutation check 29 Oct 2026: loosening the lessons policy made 3 tests fail. Runs in CI `database` job | Verified (local) | 2026-10-29 |
@@ -17,10 +17,10 @@ From the ITWM Security Framework v3.1, Appendix A. Tier C. Framework version in 
 | 08 | CSRF and cross-origin protection | Yes | Rich | | Not started | |
 | 09 | Session and cookie security | Yes | Rich | | Not started | |
 | 10 | Encryption, secrets and key management | Yes | Rich | `server-only` on the Supabase client; only public values use `NEXT_PUBLIC_`; `npm run check:bundle` clean (13 client files); `.env.local` and `.env.test.local` git-ignored. Netlify env vars scoped by context (29 Oct 2026): production context uses the production project, deploy-preview and branch-deploy contexts use staging; only public values set, no secret key in any context. Hosted bundle check pending first deploy | Implemented | 2026-10-29 |
-| 11 | Browser security headers | Yes | Rich | `src/config/security-headers.ts` (6 tests). Live capture from `next start`: CSP Report-Only, HSTS, nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy; no X-Powered-By. Deploy-preview capture pending | Implemented | 2026-10-29 |
+| 11 | Browser security headers | Yes | Rich | `src/config/security-headers.ts` (6 tests). **Production capture 29 Oct 2026** (https://carbonoffroadacademy.netlify.app): CSP Report-Only allowlist, HSTS, nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy; no X-Powered-By. CSP enforcement and nonce CSP for authenticated routes due in Phases 3 and 7 | Implemented | 2026-10-29 |
 | 12 | API, integration and outbound requests | Yes | Rich | | Not started | |
-| 13 | Dependencies, CI/CD and supply chain | Yes | Rich | `.github/workflows/ci.yml` (SHA-pinned actions, read-only permissions, CodeQL, gitleaks, npm audit); `.github/dependabot.yml`; lockfile committed. First CI run and branch protection pending (Task 12) | Implemented | 2026-10-29 |
-| 14 | Hosting, deployment and caching | Yes | Rich | `productionBrowserSourceMaps: false` (0 .map files in .next/static); `use cache` holds public data only. Staging project `naxngnrzjpdqvuphgbht` created, schema and seed applied, RLS and security advisor verified; deploy previews and branch deploys point at it. Non-production deploys require Netlify team login (Private, previews only), confirmed via Netlify API 29 Oct 2026; production stays public | Implemented | 2026-10-29 |
+| 13 | Dependencies, CI/CD and supply chain | Yes | Rich | `.github/workflows/ci.yml` (SHA-pinned actions, read-only permissions): `checks`, `database`, `secrets` (gitleaks) and `codeql` all green on PR #1, PR #8 and `main`. Dependabot active (PRs #2-#7). Branch protection on `main` still to be set | In progress | 2026-10-29 |
+| 14 | Hosting, deployment and caching | Yes | Rich | `productionBrowserSourceMaps: false` (0 .map files in .next/static); `use cache` holds public data only. Staging project `naxngnrzjpdqvuphgbht` created, schema and seed applied, RLS and security advisor verified; deploy previews and branch deploys point at it. Non-production deploys require Netlify team login (preview returns 401). **Incident 29 Oct 2026:** the first production deploy ran without the Next.js runtime and served raw `.next` files (server output downloadable, every page 404). Fixed in PR #8 by declaring `@netlify/plugin-nextjs` in netlify.toml; `/server/app/index.html` now 404s; guarded by `tests/config/netlify.test.ts`. No secrets were exposed (public env vars only; Netlify secret scan clean). Functions run in us-east-2, see decision S9 | Implemented | 2026-10-29 |
 | 15 | Logging, error handling and detection | Yes | Rich | `src/app/error.tsx` and `not-found.tsx` show generic copy only; no error details rendered | Implemented | 2026-10-29 |
 | 16 | Security testing, backup and recovery | Yes | Rich | | Not started | |
 | 17 | Agency access and credential management | Yes | Rich | Both Supabase projects (production `ljxjzvpdaeolytxakpog`, staging `naxngnrzjpdqvuphgbht`) sit in the Into The Wild Marketing organisation, not a Carbon Offroad one. See exception EX-01 | Exception | 2026-10-29 |
@@ -28,7 +28,7 @@ From the ITWM Security Framework v3.1, Appendix A. Tier C. Framework version in 
 | 19 | Forms, lead data and outbound email | Yes | Rich | | Not started | |
 | 20 | Third-party scripts, tags and tracking | Yes | Rich | | Not started | |
 | 21 | AI features and chat assistants | N/A: the Academy has no AI features. Re-assess if one is added | Rich | | N/A | |
-| 22 | Availability, abuse protection and vulnerability disclosure | Yes | Rich | `public/.well-known/security.txt` (RFC 9116, expires 2027-10-28). `security@carbonoffroad.com.au` mailbox must exist before merge | In progress | 2026-10-29 |
+| 22 | Availability, abuse protection and vulnerability disclosure | Yes | Rich | `/.well-known/security.txt` live on production (RFC 9116, expires 2027-10-28). `security@carbonoffroad.com.au` mailbox to be confirmed monitored. Uptime and certificate monitoring due in Phase 7 | In progress | 2026-10-29 |
 
 ## Exceptions (framework section 1)
 
