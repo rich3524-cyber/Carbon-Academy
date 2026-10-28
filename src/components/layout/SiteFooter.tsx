@@ -7,8 +7,9 @@ export function SiteFooter() {
     <footer data-surface="dark" className="bg-gunmetal text-white">
       <Container className="flex flex-col gap-4 py-8 text-small md:flex-row md:items-center md:justify-between">
         <p>
-          Carbon Offroad | KPD Industries Pty Ltd | ABN 80 142 983 382 |{' '}
-          <a className="link" href="tel:1300780141">
+          Carbon Offroad | KPD Industries Pty Ltd |{' '}
+          <span className="whitespace-nowrap">ABN 80 142 983 382</span> |{' '}
+          <a className="link whitespace-nowrap" href="tel:1300780141">
             1300 780 141
           </a>{' '}
           |{' '}
