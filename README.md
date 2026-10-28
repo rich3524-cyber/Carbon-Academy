@@ -18,6 +18,8 @@ Planning complete. Build not started. See `docs/BUILD_PLAN.md` for the current p
 | `docs/PRD.md` | Product requirements: audiences, flows, data model, open decisions |
 | `docs/BUILD_PLAN.md` | Phased build plan with acceptance criteria and kick-off prompts |
 | `docs/BRAND.md` | Build-ready extract of the Carbon Offroad Brand Guidelines v1.0, with page references and the brand owner's decisions |
+| `docs/SECURITY.md` | How the ITWM Custom Website Security Framework v3.1 applies to the Academy (Tier C), with decisions and the data register |
+| `docs/security/` | The full security framework (.docx) and the control evidence register |
 | `docs/brand/` | Where your local copy of the full brand guidelines PDF goes. Git-ignored (internal and partner use) |
 | `public/brand/` | Master logo SVGs from the Carbon asset library. Never edit or recreate |
 

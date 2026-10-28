@@ -90,7 +90,7 @@ All audiences see the same content. The Academy is product information only. **N
 - Certified stores appear in the `/api/certified-stores` JSON feed (store name, suburb, state, country).
 
 ### 5.6 Admin
-- Admins sign in with the same magic-link flow and have the `admin` role.
+- Admins sign in with the same magic-link flow and have the `admin` role. **They must also complete MFA** (TOTP or passkey), enforced server-side, with step-up re-authentication for high-risk actions (security framework control 03; pending decision S3 in `docs/SECURITY.md`).
 - Admin can manage everything in section 6.6 and view reports.
 
 ## 6. Functional requirements
@@ -145,7 +145,7 @@ All audiences see the same content. The Academy is product information only. **N
 - **Performance.** LCP under 2.5 s on 4G for library and lesson pages.
 - **Accessibility.** WCAG 2.1 AA (see BRAND.md for contrast rules).
 - **Language.** Australian English throughout.
-- **Security.** Row Level Security on every table. Service role key used only server-side.
+- **Security.** Row Level Security on every table. Service role key used only server-side. The build follows the ITWM Custom Website Security Framework v3.1 at **Tier C (ASVS 5.0.0 Level 2)**; see `docs/SECURITY.md`.
 - **Privacy.** Collect only what's needed. Privacy policy aligned to the Australian Privacy Principles. Marketing consent separate and opt-in.
 - **Reliability.** Managed services only (Supabase, Netlify, Vimeo). Supabase Pro plan at launch for daily backups.
 - **Ownership.** All accounts, repo and domain owned by Carbon Offroad (KPD Industries Pty Ltd), not personal or agency accounts.

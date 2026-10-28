@@ -4,6 +4,8 @@ Phased plan for building the Academy with Claude Code. Each phase ends with some
 
 At the start of each phase, paste the kick-off prompt into Claude Code. Claude Code should write a task-level plan and confirm it before coding.
 
+**Security:** every phase follows the ITWM Custom Website Security Framework v3.1. The Academy is **Tier C** (see `docs/SECURITY.md`). Each phase plan lists the framework controls it touches, and its PR records evidence in `docs/security/EVIDENCE.md`. The phase-to-control map is in `docs/SECURITY.md` section 4.
+
 ---
 
 ## Status
@@ -51,6 +53,18 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - [ ] 2–3 short test videos uploaded to Vimeo as placeholders (any existing Carbon footage is fine)
 - [ ] Confirm the launch lesson list and core flags in PRD section 9
 
+**Security (framework controls 03, 14 and 17; `docs/SECURITY.md` section 8):**
+- [x] Security framework v3.1 added to the repo; `docs/SECURITY.md` written (29 October 2026)
+- [ ] Decide security decisions S1–S9 in `docs/SECURITY.md`
+- [ ] MFA, preferably passkeys, on every account: GitHub, Netlify, Supabase, Vimeo, the domain registrar, DNS, Google Workspace and the email provider. Record each in the access register
+- [ ] Access register (who has access to what, at what role) kept in the business password manager or a restricted document, not in this repo
+- [ ] Business password manager with a Carbon Offroad vault. Credentials shared only through it
+- [ ] Second Supabase project for staging and deploy previews (Sydney region)
+- [ ] Netlify password protection on non-production deploys
+- [ ] Monitored security contact mailbox for `security.txt`
+- [ ] Separate named GitHub account for Claude Code's pull requests, so Rich can review and approve them
+- [ ] Independent reviewer named; penetration test budgeted for Phase 7
+
 ---
 
 ## Phase 1: Foundation
@@ -65,13 +79,22 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - Supabase local setup and first migrations: `categories`, `lessons`, `settings`, with RLS (public read of published rows only)
 - Seed data: categories and the 15 placeholder lessons from PRD section 9 (titles only, no specs, placeholder Vimeo IDs)
 - `.env.example`, README with setup steps
-- Netlify deploy preview working
+- Netlify deploy preview working, pointed at the staging Supabase project and password-protected
+- Security baseline (controls 10, 11, 13, 14, 15, 22):
+  - security headers and a Report-Only CSP
+  - `poweredByHeader` and production source maps off
+  - `security.txt`
+  - Dependabot
+  - CI with SHA-pinned actions, CodeQL, gitleaks and `npm audit`
+  - a client-bundle secret scan
+  - branch protection on `main`
 
 **Done when:**
 - Home page renders with brand styling at 375 px and 1280 px
 - Migrations apply cleanly to a fresh database
 - Unpublished lessons are not readable with the publishable key
 - Lint, typecheck and tests pass; deploy preview is live
+- Security headers present on the deploy preview; CI security scans green; evidence recorded for controls 04, 10, 11, 13, 14, 15 and 22
 
 **Kick-off prompt:**
 > Read CLAUDE.md and the three docs in /docs. We're starting Phase 1 of docs/BUILD_PLAN.md. Write a task-level plan for this phase, flag anything in the PRD or brand rules that's unclear, and wait for my go-ahead before writing code.
@@ -90,6 +113,13 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - Analytics event hooks (`video_start`, `video_progress_50`, `video_complete`) behind a small wrapper so the tool can be swapped
 - `qr_links` and `qr_scans` tables; `/go/[slug]` route that logs the scan, keeps UTMs and redirects to the lesson
 - Metadata: page titles, descriptions, Open Graph images
+- Security (controls 07, 12, 20):
+  - `/go/[slug]` validates the slug and passes on only the known UTM keys
+  - the warranty URL and Vimeo IDs are validated before rendering
+  - `images.remotePatterns` lists exact Vimeo hosts only
+  - Vimeo and analytics are added to the tag inventory
+  - the CSP allows only `player.vimeo.com`
+  - `/go` is rate-limited
 
 **Done when:**
 - A placeholder video plays on mobile and desktop
@@ -115,6 +145,18 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - Progress tracking from the player: throttled saves (about every 10%, on pause, on end); resume position
 - `/dashboard`: lessons in progress, completed lessons, progress towards certification (core lessons done / total)
 - Sign out, change store (enter a new code)
+- Security, done first in this phase (controls 02, 04, 05, 08, 09, 11, 14, 15, 19; framework section 5):
+  - the threat model (STRIDE) and data-flow diagram, reviewed by Rich and the independent reviewer
+  - the retention register approved
+  - the learner permissions matrix
+  - Zod validation in every Server Action
+  - neutral sign-in responses
+  - rate limits and bot protection on join and sign-in
+  - a collection notice at join
+  - a nonce-based CSP on authenticated routes
+  - `Cache-Control: private, no-store` on authenticated pages
+  - session cookie attributes reviewed
+  - the ASVS Level 2 register started
 
 **Done when:**
 - New user joins via a store code, receives the magic link, lands on the dashboard linked to the right store
@@ -138,6 +180,7 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - Attempt rate limit (default 10 per lesson per hour)
 - Seed 2–3 placeholder questions per lesson, clearly marked `[PLACEHOLDER]`
 - Dashboard shows passed lessons
+- Security (controls 04, 05, 22): the attempt rate limit is enforced server-side; the grading function validates input and checks the 90% watch threshold on the server, not only in the UI
 
 **Done when:**
 - `is_correct` can't be retrieved by a learner through any API route (test it)
@@ -162,6 +205,11 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - Daily `pg_cron` job: expire certificates, recalculate store status
 - Store status recalculated on issue, expiry, revoke and store change
 - `/api/certified-stores`: JSON (store name, suburb, state, country), cached
+- Security (controls 04, 06, 12, 19):
+  - certificate issuing runs server-side with the secret key only
+  - the verification page and feed return explicit fields only
+  - certificate emails carry a link, not personal details
+  - `/verify` and the feed are rate-limited
 
 **Done when:**
 - A test learner passing all core lessons gets a certificate, email and PDF
@@ -186,6 +234,12 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - QR links: create slug to lesson, scan counts, download QR code (SVG, from the master QR style)
 - Reports with CSV export: completions by lesson; certified staff by store and partner; certified stores; QR scans by slug and UTM source
 - Settings: pass mark, store threshold, certificate validity, warranty registration URL
+- Security (controls 03, 04, 06, 15):
+  - admins must use MFA (TOTP or passkey, `aal2` enforced in RLS and server checks)
+  - step-up re-authentication for role changes, code regeneration, certificate revocation, exports and settings changes
+  - the admin permissions matrix tested server-side
+  - an `admin_audit_log` of every admin action, against the named operator
+  - CSV exports neutralise formula injection
 
 **Done when:**
 - Non-admins get a 404 for every `/admin` route and every admin server action
@@ -214,6 +268,20 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - Vimeo embeds restricted to the production domain
 - Real videos, product names and quiz questions swapped in; all `[PLACEHOLDER]` and `[SPEC TBC]` markers removed (search the repo and database)
 - User acceptance test with 1–2 friendly stores before wider rollout
+- Security release gate (framework sections 5 and 7), all required for Tier C:
+  - the Tier A checklist and the Tier B/C pre-launch checklist complete
+  - the ASVS Level 2 register complete
+  - the threat model independently reviewed
+  - vendor assessments for Supabase, Netlify, Vimeo, the email provider and GA4
+  - DAST and manual testing
+  - an **independent penetration test**, with Critical and High findings retested
+  - an SBOM
+  - a restore rehearsal with an isolated backup copy, and RPO/RTO recorded
+  - CSP enforced after clean reports
+  - CAA, SPF, DKIM and DMARC verified; no dangling DNS records
+  - uptime and certificate monitoring live
+  - the privacy policy (APP 1), collection notices (APP 5), overseas recipients (APP 8) and the automated-decision disclosure decided
+  - the release record signed, with independent sign-off
 - Brand approval: final sign-off against the ad approval checklist in the guidelines (logo, type, colour, copy, safety)
 
 **Kick-off prompt:**

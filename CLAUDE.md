@@ -12,6 +12,8 @@ Online product training portal for Carbon Offroad customers and retail partners.
 - `docs/PRD.md`: what we're building, flows, data model, open decisions
 - `docs/BUILD_PLAN.md`: phases, current status, acceptance criteria
 - `docs/BRAND.md`: design tokens and brand rules. Non-negotiable. Page references point to the full guidelines PDF, kept locally in `docs/brand/` and git-ignored. Check it when BRAND.md doesn't cover something, and never commit it.
+- `docs/SECURITY.md`: how the **ITWM Custom Website Security Framework v3.1** (`docs/security/ITWM_Custom_Website_Security_Framework_v3.1.docx`) applies here. **The Academy is Tier C (ASVS 5.0.0 Level 2).** Non-negotiable, and the framework wins over the extract.
+- **Security check before any work is called done:** list the framework controls the change touches, re-read them in the framework document itself, and confirm their verification procedures. Record evidence in `docs/security/EVIDENCE.md` and cite the control numbers (for example "controls 04, 10") in the PR description. Flag anything the framework requires that isn't done yet.
 - **Brand check before any UI, copy, email, certificate or video work is called done:** check it against the relevant pages of the guidelines PDF (not just BRAND.md) and cite the pages you checked in your summary. Flag anything the guidelines don't cover rather than guessing.
 
 ## Stack
@@ -31,6 +33,8 @@ Online product training portal for Carbon Offroad customers and retail partners.
 - Server components by default. Client components only for the video player, quiz, and interactive forms.
 - All data access through Supabase with RLS. The secret / service role key is server-only and used only where needed (admin actions, certificate issuing, scheduled jobs). Never import it into client code.
 - **Quiz answers never reach the browser.** `answer_options.is_correct` is not selectable by learners. Grading runs in a server action or database function.
+- **Every Server Action and Route Handler is a public endpoint** (framework control 04, section 4). Each one authenticates, authorises and validates with Zod itself. Middleware/proxy is never the only access check. Database access lives in `server-only` modules that return minimal DTOs.
+- **Preview deploys never touch production data.** They use the staging Supabase project and test data (control 14).
 - Schema changes only through SQL migrations in `supabase/migrations/`. Never edit the database by hand. Regenerate TypeScript types after every migration.
 - Mobile first. Most learners are store staff on phones.
 
@@ -67,7 +71,7 @@ Online product training portal for Carbon Offroad customers and retail partners.
 - Small commits with conventional commit messages.
 - Before calling a task done: lint, typecheck and tests pass, and you've checked the UI at 375 px and 1280 px wide.
 - At the end of each session, update the Status section of `docs/BUILD_PLAN.md`.
-- **Ask before:** adding a paid service, changing the data model beyond the PRD, touching auth or RLS policies outside the current phase, or deleting data.
+- **Ask before:** granting a security exception (it needs a justification, compensating controls, an expiry date and Rich's written approval, framework section 1), adding a vendor that receives personal data (vendor assessment, section 5), adding a paid service, changing the data model beyond the PRD, touching auth or RLS policies outside the current phase, or deleting data.
 
 ## Commands
 
