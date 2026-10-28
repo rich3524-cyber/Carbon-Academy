@@ -2,7 +2,7 @@
 
 Build-ready extract from the **Carbon Offroad Brand Guidelines v1.0 (October 2026)**. The PDF is internal and partner use only, so it is not committed: keep a local copy at `docs/brand/Carbon_Offroad_Brand_Guidelines_v1.0.pdf` (git-ignored; see `docs/brand/README.md`). The guidelines are the source of truth. If anything here conflicts with them, the guidelines win. Page references (p.N) point to the PDF. All public-facing designs are approved by the Sales and Marketing Manager (p.4, p.69).
 
-Items marked **[Academy decision]** are not in the guidelines and need sign-off. Open questions are listed at the end.
+Items marked **[Academy decision]** are not in the guidelines. Items marked **[Approved]** were decided by the brand owner on 28 October 2026. All decisions are listed at the end.
 
 ---
 
@@ -25,12 +25,16 @@ Items marked **[Academy decision]** are not in the guidelines and need sign-off.
 | `concrete` | `#909090` | 144/144/144 | Captions on black, dividers, textures, disabled states | Body text on white |
 | `dust` | `#E6E6E6` | 230/230/230 | Light panels, table stripes, form fields, section backgrounds | Text |
 | `logo-black` | `#000000` | 0/0/0 | Logo only (the logo is always pure black or pure white) | — |
+| `error-red` | `#C62828` | 198/40/40 | Form error states and genuine safety warnings only **[Approved]** | Decoration, buttons, headings, large areas, anything that isn't an error or a safety warning |
 
 **Balance:** 60% black and white, 30% greys, 10% cyan. "If a layout looks blue, there is too much cyan." (p.24)
 
 **Do not use (p.25):** red, orange or yellow as brand colours ("red is acceptable only for genuine safety warnings"), gradients, camo, neon, metallic effects, tints of cyan (light blues) or other blues. If you need a lighter tone, use Dust.
 
-**Form errors [Academy decision]:** the guidelines don't cover form error states. Proposed: an error message in Carbon Black with an error icon and a 2 px Carbon Black border on the field, no red. Use red only if the brand owner approves it for errors.
+**Form errors [Approved]:** red is approved for form error states as well as safety warnings.
+- Use `error-red` for the error message text and a 2 px field border, with an error icon. Colour is never the only signal (WCAG 1.4.1).
+- Contrast: `#C62828` is 5.6:1 on white and 4.5:1 on Dust, so put error text on white below the field, not inside a Dust field.
+- Red stays out of the brand palette otherwise.
 
 ### Approved contrast pairs (WCAG 2.1, p.25)
 
@@ -174,7 +178,9 @@ Master SVGs from the asset library (Logos and Branding folder), renamed for the 
 | `logo-compact-black-transparent.svg` | `carbon offroad logo_compact_black on transparent.svg` |
 | `logo-compact-black-on-white.svg` | `carbon offroad logo_compact_black on white.svg` |
 | `logo-compact-white-on-black.svg` | `carbon offroad logo_compact_white on black.svg` |
-| `logo-full-white-on-black-2000.png` | `favicon / carbon offroad logo_full_white on black 2000x1000.png` (2000 × 1000, 106 KB). **Opaque white background around the badge, no transparency.** It only works on white. Don't use it on the black email header bar, where it would show as a white box. For that, export a transparent PNG from `logo-full-white-on-black.svg` at build time (an exact rasterisation of the master, not a recreation), or get one from marketing |
+| `logo-full-white-on-black-2000.png` | `favicon / carbon offroad logo_full_white on black 2000x1000.png` (2000 × 1000, 106 KB). **Opaque white background around the badge.** Works on white only |
+| `logo-full-white-on-black-transparent-2000.png` | Exported 28 October 2026 from the 2000 px master. Only the white surround connected to the image edge was cleared; the lettering and the anti-aliased edge were kept. Cropped tight to the badge: 1996 × 406, 60 KB. Pixels unchanged otherwise **[Approved]** |
+| `logo-full-white-on-black-transparent-email.png` | The same export at 400 × 81 (7 KB), for the email header shown at 200 px wide (2× for high-density screens) |
 | `concrete-texture.jpg` | `Vinyl wrap (1).png` (10131 × 7596, 88.7 MB), resized to 2400 × 1799 JPG at quality 78 (about 1.1 MB). The master isn't committed; Next.js `<Image>` serves smaller sizes and formats from this file |
 
 ### Concrete texture (wrap artwork, p.32, p.55)
@@ -238,14 +244,15 @@ Simple solid or 2 px line icons with squared ends. Black, white or cyan only. On
 
 - Progress bars and completion ticks: cyan on black or Gunmetal, Concrete for incomplete.
 - Certified badge: black badge shape with white text and a cyan slash. Must not resemble or alter the Carbon Offroad logo.
-- "Carbon Certified" and "Carbon Certified Store" are new brand claims. They aren't in the approved partner wording (p.63), so they need brand owner sign-off. The approved wording is "Authorised Carbon Offroad Dealer", "Proud stockist of Carbon Offroad" and similar. If store logos appear beside the Carbon logo: same baseline, equal visual weight, at least 2X clear space or a thin divider, never a merged mark (p.63).
+- **"Carbon Certified" and "Carbon Certified Store" [Approved]**, as an addition to the partner wording on p.63. Write them exactly like that: two words, title case, no "Carbon Offroad Certified".
+- If store logos appear beside the Carbon logo: same baseline, equal visual weight, at least 2X clear space or a thin divider, never a merged mark (p.63).
 
 ### Video player and lesson videos (p.25, p.58–59)
 
 - Vimeo player colour set to `#00A4C7` [Academy decision; the guidelines don't cover players].
 - **Intro sting:** optional, 0.5–1.5 s, a double slash (cyan + white) wiping across black.
-- **Watermark:** icon or full logo (white-on-black badge), top right, 60–80% opacity, inside the safe zone. The guidelines scope it to "YouTube long-form only"; using it on Academy videos needs a decision.
-- **Lower thirds:** black bar with a cyan edge (p.58; p.25 says Gunmetal, so check with the brand owner). Name in Extended Black, role in Regular, 4–6 s on screen.
+- **Watermark [Approved]:** used on Academy videos as well as YouTube long-form. Icon or full logo (white-on-black badge), top right, 60–80% opacity, inside the safe zone.
+- **Lower thirds [Approved]:** black bar with a cyan edge (p.58), not Gunmetal. Name in Extended Black, role in Regular, 4–6 s on screen.
 - **On-screen text:** white; Extended Black for headlines, Bold for supers; a 60% black box on busy backgrounds; max 6 words per super.
 - **Captions:** Eurostile Bold, white on a black box, centred, Australian English. The Academy requires captions on every video.
 - **Spec callouts:** a thin cyan line to a Bold label, animated along the slash angle.
@@ -266,8 +273,8 @@ Simple solid or 2 px line icons with squared ends. Black, white or cyan only. On
 
 Based on the document page setup (p.48) and export settings (p.50). The guidelines have no certificate template.
 
-- **Page:** A4 white, 20 mm margins on all sides. The guidelines' document standard is **portrait** (p.48); landscape needs sign-off. "No coloured page backgrounds except covers."
-- **Logo:** full logo, black on transparent, top left, 50–60 mm wide (p.48). Vector, not raster.
+- **Page:** A4 white, 20 mm margins on all sides. **Landscape [Approved]**, as an exception to the portrait document standard (p.48). "No coloured page backgrounds except covers."
+- **Logo:** full logo, black on transparent, top left. Use the vector master, not a raster. Size it to 30–40% of the page width (p.22), which is 89–119 mm on landscape A4. The 50–60 mm in p.48 assumes portrait letterhead.
 - **Title:** Eurostile Extended Black uppercase. **The whole certificate uses one family:** all Eurostile if a PDF-embedding licence exists, otherwise all Arial (Arial Bold for headings).
 - **Accent:** one cyan rule or slash only.
 - **Footer:** Carbon Offroad | KPD Industries Pty Ltd | ABN 80 142 983 382 | 1300 780 141 | carbonoffroad.com.au.
@@ -278,7 +285,7 @@ Based on the document page setup (p.48) and export settings (p.50). The guidelin
 ## Email (magic link, certificate issued; p.45)
 
 - 600 px max width, single column.
-- **Header:** black bar, full logo white-on-black **centred**, 160–200 px wide, linked to the Academy home. p.45 specifies centred; p.21 says top left is the default for email headers, so check with the brand owner. Use the 2000 px PNG master, not SVG.
+- **Header [Approved]:** black bar, full logo white-on-black, **centred** (p.45, over the p.21 top-left default), 160–200 px wide, linked to the Academy home. Use `logo-full-white-on-black-transparent-email.png` with `width="200"`, never SVG and never the white-background PNG.
 - **Headline:** Arial Bold 26–28 px live text (or a Eurostile image with alt text).
 - **Body:** Arial 16 px, line height 1.5, `#111111` on white, 50–125 words. One primary CTA.
 - **CTA:** cyan `#00A4C7` button, `#111111` bold uppercase text, min 44 px tall.
@@ -318,7 +325,7 @@ The test for plain language (p.15): "If a 10-year-old and an engineer could both
 - **Spelling:** Australian English, Macquarie (colour, tyre, organise, centre, licence).
 - **Brand name:** "Carbon Offroad", two words. Never CarbonOffroad, Carbon Off Road or Carbon Off-Road. "Carbon" alone is fine after first mention.
 - **Product names:** exactly as on the website, including version: Carbon 12K V3X, Scout Pro 10K V3.
-- **Specs:** figures, comma thousands, a space before the unit, metric first: 5,443 kg (12,000 lb), 12 V (p.10, p.16).
+- **Specs [Approved]:** figures, comma thousands, a space before the unit, **metric first**: 5,443 kg (12,000 lb), 12 V (p.10, p.16). Ignore the imperial-first example in the p.61 AI prompt.
 - **Dates and times:** 26 October 2026; 9am, 4.30pm; AEST / AEDT where needed.
 - **Ampersands:** "and" in body copy; "&" only in tight headlines.
 - **Capitals:** sentence case for body and subheads. Uppercase only for Eurostile Extended headlines, taglines and buttons.
@@ -358,16 +365,20 @@ This applies to Claude Code drafting lesson copy, quiz questions or microcopy:
 
 Anything public goes to the Sales and Marketing Manager before it goes live (sales@carbonoffroad.com.au). Allow two business days. Name files to convention (p.50): `CarbonOffroad_[Type]_[Channel]_[Description]_[Size]_v[N]_[YYYYMMDD].[ext]`.
 
-## Open questions for the brand owner
+## Brand owner decisions (28 October 2026)
 
-The guidelines are silent or contradict themselves on these points.
+Decided by Rich, Sales and Marketing Manager, where the guidelines were silent or contradicted themselves.
 
-1. **Email header logo:** centred (p.45 email spec) or top left (p.21 default)? This file uses centred.
-2. **Lower thirds:** black bar with cyan edge (p.58) or Gunmetal (p.25)? This file uses p.58.
-3. **Certificate orientation:** documents are A4 portrait (p.48). Is landscape allowed for certificates?
-4. **Watermark on Academy videos:** p.58 scopes the watermark to YouTube long-form. Use it on Academy videos?
-5. **Red for form errors:** not allowed by the guidelines. Approve red for errors, or use the black-and-icon approach?
-6. **"Carbon Certified" / "Carbon Certified Store":** these are new claims beside the approved partner wording (p.63). Approve the wording and the badge design.
-7. **Spec unit order:** metric first per p.10 and p.16, but the AI voice prompt on p.61 shows "12,000 lb / 5,443 kg". Confirm metric first and fix the prompt in the next version.
-8. **Icon SVG:** the asset library lists the icon as PNG only (p.68). Is there a vector master?
-9. **Transparent email logo:** the 2000 px PNG master has a white background. Is there a transparent version, or should the build export one from the master SVG?
+| # | Question | Decision |
+|---|---|---|
+| 1 | Email header logo: centred (p.45) or top left (p.21)? | **Centred** |
+| 2 | Lower thirds: cyan edge (p.58) or Gunmetal (p.25)? | **Black bar with cyan edge** |
+| 3 | Certificate orientation (documents are portrait, p.48) | **Landscape is fine** |
+| 4 | Watermark on Academy videos (p.58 says YouTube only) | **Yes** |
+| 5 | Red for form errors | **Yes**, as `error-red` `#C62828`, also for safety warnings |
+| 6 | "Carbon Certified" and "Carbon Certified Store" | **Both approved** |
+| 7 | Spec unit order | **Metric first** |
+| 8 | Vector icon master | **TBA.** Until one arrives, favicons are made from the icon PNG masters |
+| 9 | Transparent email logo | **Exported** from the 2000 px master (`logo-full-white-on-black-transparent-*.png`) |
+
+To raise with the next guidelines update (v1.1): document decisions 1–7 in the PDF, and fix the imperial-first example in the p.61 AI prompt.

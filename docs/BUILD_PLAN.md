@@ -44,9 +44,9 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
   - [x] Full and compact logo SVGs, all three colourways, in `public/brand/` (28 October 2026)
   - [x] Brand Guidelines v1.0 read in full; `docs/BRAND.md` updated against it. The PDF stays local in `docs/brand/` and is git-ignored
   - [ ] Still needed (names as in guidelines p.68): icon PNGs (`carbon compact logo no text.png`, `...inverted.png`) and a vector icon if one exists; `qr codes / carbonoffroad QR.svg`
-  - [x] Full logo PNG master in `public/brand/logo-full-white-on-black-2000.png`. It has a white background, so a transparent version is still needed for the black email header (BRAND.md open question 9)
+  - [x] Full logo PNG master in `public/brand/`, plus transparent exports for the black email header
   - [x] Concrete texture: `public/brand/concrete-texture.jpg` (2400 px, web-optimised from the wrap artwork master, 28 October 2026)
-- [ ] Answer the open questions at the end of `docs/BRAND.md`
+- [x] Brand open questions answered (28 October 2026; see the end of `docs/BRAND.md`). The vector icon master is still TBA
 - [ ] Warranty registration page URL
 - [ ] 2–3 short test videos uploaded to Vimeo as placeholders (any existing Carbon footage is fine)
 - [ ] Confirm the launch lesson list and core flags in PRD section 9
