@@ -12,7 +12,8 @@ export function contentSecurityPolicy(dev: boolean): string {
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'"],
     'connect-src': ["'self'", ...(dev ? ['ws:'] : [])],
-    'frame-src': ["'none'"],
+    // Lesson videos only (BUILD_PLAN Phase 2, tag inventory). No other third-party frames.
+    'frame-src': ['https://player.vimeo.com'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
