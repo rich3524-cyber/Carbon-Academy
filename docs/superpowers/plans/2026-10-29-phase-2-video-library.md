@@ -744,7 +744,7 @@ Expected: passes. `log_qr_scan` now appears under `Functions` in `src/types/data
 In the new migration file, temporarily change `if v_recent < 60 then` to `if true then`. Then run `npm run db:reset && npm run test:db`.
 Expected: `records at most 60 scans per link per minute…` fails, because 66 scans are recorded.
 
-Restore the file with `git checkout -- supabase/migrations`, then run `npm run db:reset && npm run test:db`.
+Restore the line to `if v_recent < 60 then`. Don't rely on `git checkout`: the migration isn't committed yet, so checkout restores nothing (found during the build, 29 October 2026). Confirm with `Select-String` that the line is back, then run `npm run db:reset && npm run test:db`.
 Expected: all pass. Record the result for the control 22 evidence.
 
 - [ ] **Step 7: Commit**

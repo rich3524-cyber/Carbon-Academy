@@ -1,22 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { admin, publicClient } from './clients'
 
 // Security framework control 04: deny by default, verified server-side against a real database.
-
-function localEnv(name: string): string {
-  const value = process.env[name]
-  if (!value) throw new Error(`${name} is missing from .env.test.local`)
-  return value
-}
-
-const url = localEnv('SUPABASE_TEST_URL')
-if (!/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)) {
-  throw new Error('RLS tests only run against the local Supabase stack, never a hosted project')
-}
-
-const options = { auth: { persistSession: false } }
-const admin = createClient(url, localEnv('SUPABASE_TEST_SECRET_KEY'), options)
-const publicClient = createClient(url, localEnv('SUPABASE_TEST_PUBLISHABLE_KEY'), options)
 
 let draftLessonId: string | undefined
 

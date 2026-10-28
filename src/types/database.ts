@@ -57,6 +57,46 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"qr_links": {
+                  Row: {
+                    "created_at": string,"id": string,"lesson_id": string,"scan_count": number,"slug": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"lesson_id": string,"scan_count"?: number,"slug": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"lesson_id"?: string,"scan_count"?: number,"slug"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "qr_links_lesson_id_fkey"
+      columns: ["lesson_id"]
+isOneToOne: false
+      referencedRelation: "lessons"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"qr_scans": {
+                  Row: {
+                    "id": string,"qr_link_id": string,"scanned_at": string,"utm_campaign": string | null,"utm_medium": string | null,"utm_source": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"qr_link_id": string,"scanned_at"?: string,"utm_campaign"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"qr_link_id"?: string,"scanned_at"?: string,"utm_campaign"?: string | null,"utm_medium"?: string | null,"utm_source"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "qr_scans_qr_link_id_fkey"
+      columns: ["qr_link_id"]
+isOneToOne: false
+      referencedRelation: "qr_links"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"settings": {
                   Row: {
                     "description": string,"key": string,"updated_at": string,"value": NonNullable<Json>
@@ -77,7 +117,11 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "log_qr_scan":
+{ Args: { "p_slug": string,"p_utm_campaign"?: string,"p_utm_medium"?: string,"p_utm_source"?: string }; Returns: {
+              "category_slug": string,"lesson_slug": string
+            }[]
+                           }
           }
           Enums: {
             "region": "AU"|"US"|"ALL"
