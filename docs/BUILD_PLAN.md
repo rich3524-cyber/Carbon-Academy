@@ -14,7 +14,7 @@ At the start of each phase, paste the kick-off prompt into Claude Code. Claude C
 |---|---|---|
 | 0. Accounts and assets | In progress | Rich. Supabase, Netlify, logo SVGs and brand guidelines done |
 | 1. Foundation | Done | Live at https://carbonoffroadacademy.netlify.app (PR #1, fix PR #8). Open before Phase 2: home copy and product names approval, security@ mailbox, branch protection on main, Dependabot PR triage |
-| 2. Video library | Not started | |
+| 2. Video library | In review | Branch `phase-2-video-library`. Lighthouse mobile lesson page 100/100; awaiting a Carbon test video, copy approval and the PR |
 | 3. Accounts and progress | Not started | |
 | 4. Quizzes | Not started | |
 | 5. Certification | Not started | |
