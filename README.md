@@ -17,7 +17,9 @@ Planning complete. Build not started. See `docs/BUILD_PLAN.md` for the current p
 | `CLAUDE.md` | Instructions Claude Code reads every session: stack, rules, how to work in this repo |
 | `docs/PRD.md` | Product requirements: audiences, flows, data model, open decisions |
 | `docs/BUILD_PLAN.md` | Phased build plan with acceptance criteria and kick-off prompts |
-| `docs/BRAND.md` | Build-ready extract of the Carbon Offroad Brand Guidelines v1.0 |
+| `docs/BRAND.md` | Build-ready extract of the Carbon Offroad Brand Guidelines v1.0, with page references and open questions |
+| `docs/brand/` | Where your local copy of the full brand guidelines PDF goes. Git-ignored (internal and partner use) |
+| `public/brand/` | Master logo SVGs from the Carbon asset library. Never edit or recreate |
 
 ## Stack
 

@@ -11,7 +11,8 @@ Online product training portal for Carbon Offroad customers and retail partners.
 
 - `docs/PRD.md`: what we're building, flows, data model, open decisions
 - `docs/BUILD_PLAN.md`: phases, current status, acceptance criteria
-- `docs/BRAND.md`: design tokens and brand rules. Non-negotiable.
+- `docs/BRAND.md`: design tokens and brand rules. Non-negotiable. Page references point to the full guidelines PDF, kept locally in `docs/brand/` and git-ignored. Check it when BRAND.md doesn't cover something, and never commit it.
+- **Brand check before any UI, copy, email, certificate or video work is called done:** check it against the relevant pages of the guidelines PDF (not just BRAND.md) and cite the pages you checked in your summary. Flag anything the guidelines don't cover rather than guessing.
 
 ## Stack
 

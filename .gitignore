@@ -34,6 +34,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Brand guidelines PDF is internal and partner use only. Keep a local copy
+# in docs/brand/ from the Carbon asset library; docs/BRAND.md is the committed extract
+docs/brand/*.pdf
+
 # Unlicensed font files must never be committed (see docs/BRAND.md)
 *.otf
 *.ttf

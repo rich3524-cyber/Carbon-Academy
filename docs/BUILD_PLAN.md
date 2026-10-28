@@ -10,7 +10,7 @@ At the start of each phase, paste the kick-off prompt into Claude Code. Claude C
 
 | Phase | Status | Notes |
 |---|---|---|
-| 0. Accounts and assets | Not started | Rich |
+| 0. Accounts and assets | In progress | Rich. Supabase, Netlify, logo SVGs and brand guidelines done |
 | 1. Foundation | Not started | |
 | 2. Video library | Not started | |
 | 3. Accounts and progress | Not started | |
@@ -20,7 +20,7 @@ At the start of each phase, paste the kick-off prompt into Claude Code. Claude C
 | 7. Launch readiness | Not started | |
 | 8. Integrations (post-launch) | Not started | |
 
-Last updated: 27 October 2026
+Last updated: 28 October 2026
 
 ---
 
@@ -29,13 +29,24 @@ Last updated: 27 October 2026
 Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@carbonoffroad.com.au`) as the owner, with Rich as a member.
 
 - [ ] GitHub organisation for Carbon Offroad, private repo `carbon-offroad-academy`
-- [ ] Supabase organisation and project (Sydney region). Free tier for build, Pro at launch for daily backups
-- [ ] Netlify team and site, connected to the repo
+- [x] Supabase organisation and project (Sydney region). Free tier for build, Pro at launch for daily backups
+  - Project `Carbon-Academy`, ref `ljxjzvpdaeolytxakpog`, region ap-southeast-2, created 28 October 2026
+  - URL: `https://ljxjzvpdaeolytxakpog.supabase.co` (goes in `NEXT_PUBLIC_SUPABASE_URL`)
+- [x] Netlify team and site, connected to the repo
+  - Site `carbonoffroadacademy` (Pro team), https://carbonoffroadacademy.netlify.app, deploys from `main`
+  - Returns 404 until Phase 1 adds the Next.js app (the repo has no build output yet)
 - [ ] Vimeo plan that supports: domain-restricted embeds, hiding videos from vimeo.com, player colour customisation. Confirm before buying
 - [ ] DNS access for carbonoffroad.com.au to add the `academy` subdomain (find out who manages DNS)
 - [ ] Transactional email sender, e.g. `academy@carbonoffroad.com.au`, plus SMTP credentials (Google Workspace SMTP or a provider such as Resend)
 - [ ] Eurostile web font licence for Extended Black, Bold and Regular, from an authorised foundry. Check the licence also covers PDF embedding for certificates
+  - Asset folder fonts checked 28 October 2026: conversions and old desktop fonts, none web-licensed. Not committed; see BRAND.md Typography
 - [ ] From the asset library: full logo SVGs (black on transparent, white on black), compact logo white on black, icon, favicon files, concrete texture / wrap artwork
+  - [x] Full and compact logo SVGs, all three colourways, in `public/brand/` (28 October 2026)
+  - [x] Brand Guidelines v1.0 read in full; `docs/BRAND.md` updated against it. The PDF stays local in `docs/brand/` and is git-ignored
+  - [ ] Still needed (names as in guidelines p.68): icon PNGs (`carbon compact logo no text.png`, `...inverted.png`) and a vector icon if one exists; `qr codes / carbonoffroad QR.svg`
+  - [x] Full logo PNG master in `public/brand/logo-full-white-on-black-2000.png`. It has a white background, so a transparent version is still needed for the black email header (BRAND.md open question 9)
+  - [x] Concrete texture: `public/brand/concrete-texture.jpg` (2400 px, web-optimised from the wrap artwork master, 28 October 2026)
+- [ ] Answer the open questions at the end of `docs/BRAND.md`
 - [ ] Warranty registration page URL
 - [ ] 2–3 short test videos uploaded to Vimeo as placeholders (any existing Carbon footage is fine)
 - [ ] Confirm the launch lesson list and core flags in PRD section 9
