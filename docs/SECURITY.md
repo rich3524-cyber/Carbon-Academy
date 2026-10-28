@@ -83,6 +83,7 @@ Every phase follows these. Each rule cites its source in the framework.
   - A **nonce-based CSP for authenticated areas** (`/dashboard`, `/admin`, from Phase 3).
 
 **Caching (control 14)**
+- With Next.js 16 Cache Components, `'use cache'` is a shared cache. Only public content goes inside it, never anything read from cookies or a session.
 - Authenticated or user-specific responses are never shared-cached. Set `Cache-Control: private, no-store` and render them dynamically.
 - Keep tokens and personal information out of URLs and cache keys.
 - Protect revalidation endpoints with a secret compared in constant time.
@@ -184,7 +185,9 @@ All retention periods are proposals. Rich approves them before Phase 3. Section 
 - **Spam Act:** the marketing opt-in is a separate, unticked box. Account emails are transactional only.
 - **Ransomware payment reporting (Cyber Security Act 2024):** add to the incident playbook.
 
-## 8. Security decisions (to be made by Rich)
+## 8. Security decisions
+
+**Status:** Rich approved all nine recommendations on 29 October 2026. The actions that follow from them are tracked in `docs/BUILD_PLAN.md` Phase 0 (Security).
 
 | # | Decision | Recommendation |
 |---|---|---|

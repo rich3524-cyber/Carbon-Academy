@@ -8,7 +8,7 @@ Online product training portal for Carbon Offroad retail partners and customers.
 
 ## Status
 
-Planning complete. Build not started. See `docs/BUILD_PLAN.md` for the current phase.
+Phase 1 (Foundation) in progress on branch `phase-1-foundation`. See `docs/BUILD_PLAN.md` for the current phase.
 
 ## Docs
 
@@ -29,4 +29,19 @@ Next.js, TypeScript, Tailwind CSS, Supabase (Postgres, Auth, RLS), Vimeo, Netlif
 
 ## Getting started
 
-Setup steps will be added in Phase 1. To start the build, open this repo in Claude Code and paste the Phase 1 kick-off prompt from `docs/BUILD_PLAN.md`.
+Needs Node.js LTS (version in `.nvmrc`) and Docker Desktop running.
+
+```bash
+npm install
+npm run db:start          # local Supabase; prints the local keys
+npm run db:reset          # apply migrations and seed
+```
+
+1. Copy `.env.example` to `.env.local`. Set `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` and the local publishable key.
+2. Create `.env.test.local` with `SUPABASE_TEST_URL`, `SUPABASE_TEST_PUBLISHABLE_KEY` and `SUPABASE_TEST_SECRET_KEY`, all from `npx supabase status`.
+3. Run `npm run dev` and open http://localhost:3000.
+
+Before calling anything done:
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run test:db` pass.
+- The page has been checked at 375 px and 1280 px.
+- The brand and security checks in `CLAUDE.md` are done.
