@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next'
+import { securityHeaders } from './src/config/security-headers'
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
         as: '*.css',
       },
     },
+  },
+  // Security framework section 4, "Build and release configuration"
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: securityHeaders(process.env.NODE_ENV === 'development'),
+      },
+    ]
   },
 }
 
