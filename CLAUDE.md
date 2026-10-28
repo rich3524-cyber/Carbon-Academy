@@ -18,7 +18,11 @@ Online product training portal for Carbon Offroad customers and retail partners.
 
 ## Stack
 
-- Next.js (current stable, App Router) with TypeScript in strict mode
+- Next.js 16 (App Router) with TypeScript in strict mode and **Cache Components on**. This version has breaking changes (see `AGENTS.md`), so read the bundled docs in `node_modules/next/dist/docs/` before writing Next.js code. In particular:
+  - `revalidate` and `dynamic` route config are gone: use `'use cache'` and `cacheLife`.
+  - Error boundaries get `retry()`.
+  - Middleware is `proxy.ts`.
+  - **Never put user-specific data inside `'use cache'`.** It's a shared cache (control 14). Read cookies outside cached scopes.
 - Tailwind CSS, configured with the tokens in `docs/BRAND.md`
 - Supabase: Postgres, Auth (email magic link only), Row Level Security on every table, `pg_cron` for scheduled jobs
 - Vimeo for video, `@vimeo/player` for playback events
@@ -75,17 +79,19 @@ Online product training portal for Carbon Offroad customers and retail partners.
 
 ## Commands
 
-Fill in once scaffolded:
-
 ```
-npm run dev          # local dev server
-npm run build        # production build
+npm run dev            # local dev server (http://localhost:3000)
+npm run build          # production build
 npm run lint
 npm run typecheck
-npm run test
-supabase start       # local Supabase stack
-supabase db push     # apply migrations to the linked project
-supabase gen types typescript --local > src/types/database.ts
+npm test               # unit and brand guard tests
+npm run test:db        # RLS tests, local Supabase only
+npm run format         # Prettier
+npm run check:bundle   # fail if a server secret is in .next/static (after a build)
+npm run db:start       # start the local Supabase stack (needs Docker)
+npm run db:reset       # re-apply migrations and seed locally
+npm run db:types       # regenerate src/types/database.ts after every migration
+npx supabase db push   # apply migrations to the linked hosted project (ask Rich first)
 ```
 
 ## Environment variables

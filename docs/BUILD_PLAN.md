@@ -59,7 +59,10 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - [ ] MFA, preferably passkeys, on every account: GitHub, Netlify, Supabase, Vimeo, the domain registrar, DNS, Google Workspace and the email provider. Record each in the access register
 - [ ] Access register (who has access to what, at what role) kept in the business password manager or a restricted document, not in this repo
 - [ ] Business password manager with a Carbon Offroad vault. Credentials shared only through it
-- [ ] Second Supabase project for staging and deploy previews (Sydney region)
+- [x] Second Supabase project for staging and deploy previews (Sydney region)
+  - `Carbon-Academy-Staging`, ref `naxngnrzjpdqvuphgbht`, URL `https://naxngnrzjpdqvuphgbht.supabase.co`, created 29 October 2026. Schema and seed applied; RLS and security advisor verified
+  - In the Into The Wild Marketing organisation for now (US$10/month), under security exception EX-01 in `docs/security/EVIDENCE.md`
+- [ ] Carbon Offroad Supabase organisation, with both projects transferred into it. **Must happen before Phase 3** (exception EX-01 expiry)
 - [ ] Netlify password protection on non-production deploys
 - [ ] Monitored security contact mailbox for `security.txt`
 - [ ] Separate named GitHub account for Claude Code's pull requests, so Rich can review and approve them

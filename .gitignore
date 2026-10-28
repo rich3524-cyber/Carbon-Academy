@@ -41,3 +41,10 @@ docs/brand/*.pdf
 # Unlicensed font files must never be committed (see docs/BRAND.md)
 *.otf
 *.ttf
+
+# TypeScript and Next.js generated
+*.tsbuildinfo
+next-env.d.ts
+
+# Keys and certificates
+*.pem
