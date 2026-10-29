@@ -72,6 +72,15 @@ export default async function DashboardPage() {
               <ButtonLink href="/lessons">Browse lessons</ButtonLink>
             </div>
           </div>
+        ) : inProgress.length === 0 ? (
+          // Everything started is complete. Draft copy, awaiting Rich's approval (brand p.69).
+          <p className="mt-4">
+            Nothing in progress right now.{' '}
+            <Link className="link" href="/lessons">
+              Pick your next lesson
+            </Link>
+            .
+          </p>
         ) : (
           <ul className="mt-4 flex flex-col gap-4">
             {inProgress.map((lesson) => (
