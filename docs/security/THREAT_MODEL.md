@@ -96,7 +96,7 @@ Run on staging after the Phase 2 migration, 29 October 2026.
 - the ASVS 5.0 chapters
 - the Next.js docs
 
-**This is not independent review in the framework's sense** (decision 9). A named human reviewer still has to review it before the Phase 3 gate. **Rich's sign-off is pending.**
+**This is not independent review in the framework's sense** (decision 9). A named human reviewer still has to review it before the Phase 3 gate. **Signed off by Rich, Sales and Marketing Manager, in chat on 29 October 2026**, including EX-02 and the two changed decisions (10-minute links, 8-character store codes).
 
 Every finding was checked against its source before being accepted. For example, `config.toml` really did have `secure_password_change = false` and `otp_length = 6`, and the ASVS 3.4.3 text was read in full. Then every finding was fixed in the plan, registers or design, as below.
 

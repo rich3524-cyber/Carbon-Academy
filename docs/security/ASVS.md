@@ -54,7 +54,7 @@ Phase 3 plan: `docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.m
 
 ## V6 Authentication
 
-The Academy's only learner authentication is an **email magic link**. ASVS 5.0 treats email as an unsafe out-of-band mechanism (V6.6 introduction) and expects MFA or a combination of factors at Level 2 (6.3.3). That deviation is proposed as **exception EX-02** in `EVIDENCE.md`. It covers 6.3.3, 6.5.2, 6.6.2, 7.5.2 and the NIST SP 800-63B email deviation noted under 7.1.1, and it needs Rich's written approval. Admin accounts (Phase 6) must use MFA (control 03).
+The Academy's only learner authentication is an **email magic link**. ASVS 5.0 treats email as an unsafe out-of-band mechanism (V6.6 introduction) and expects MFA or a combination of factors at Level 2 (6.3.3). That deviation is **exception EX-02**, approved by Rich on 29 October 2026, in `EVIDENCE.md`. It covers 6.3.3, 6.5.2, 6.6.2, 7.5.2 and the NIST SP 800-63B email deviation noted under 7.1.1. Admin accounts (Phase 6) must use MFA (control 03).
 
 | ID | Level | Summary | How the Academy meets it | Status |
 |---|---|---|---|---|
@@ -64,19 +64,19 @@ The Academy's only learner authentication is an **email magic link**. ASVS 5.0 t
 | 6.2.1–6.2.12 | 1–2 | Password rules | N/A for the app: no passwords are set, entered or stored. For the API password pathway, see 6.1.3 | N/A |
 | 6.3.1 | 1 | Credential-stuffing and brute-force controls implemented | Edge rate limits; Supabase per-address and hourly email limits; single-use, short-lived tokens | Planned (Task 16) |
 | 6.3.2 | 1 | No default accounts | None are created. Test users are fictional, local or staging only, and deleted after use | Planned (Tasks 3, 17) |
-| 6.3.3 | 2 | MFA, or a combination of factors, to access the application | **Not met for learners:** a magic link is a single factor | **Exception EX-02 (proposed)** |
+| 6.3.3 | 2 | MFA, or a combination of factors, to access the application | **Not met for learners:** a magic link is a single factor | **Exception EX-02** (approved 29 Oct 2026) |
 | 6.3.4 | 2 | No undocumented pathways; consistent strength | As 6.1.3 | Planned (Tasks 4, 17) |
 | 6.4.1 | 1 | Activation codes are random, short-lived and single use | Supabase generates the token hashes; 10-minute expiry; single use | Planned (Task 4) |
 | 6.4.2 | 1 | No password hints or secret questions | None | Met |
 | 6.4.3 | 2 | Secure account recovery that doesn't bypass MFA | No passwords to reset. A learner who loses their mailbox asks Rich. The runbook in `PERMISSIONS.md` covers: verify the person, change the email with the admin API, sign them out everywhere, notify both addresses, and log it against Rich by name (control 02, review M4) | Partial (manual runbook; no admin tooling until Phase 6) |
 | 6.4.4 | 2 | Identity proofing when an MFA factor is lost | Phase 6 (admin MFA) | Phase 6 |
 | 6.5.1 | 2 | Out-of-band codes usable once | Supabase magic links are single use; a reused link shows "expired or already used" | Planned (Task 11) |
-| 6.5.2 | 2 | Low-entropy lookup secrets stored hashed, resistant to guessing | Supabase stores a hash of the email and the one-time code, not a salted slow hash. With `otp_length = 10` (about 33 bits), a 10-minute expiry and Supabase's verification limit, guessing is impractical, but this is still short of the requirement | **Exception EX-02 (proposed)** |
+| 6.5.2 | 2 | Low-entropy lookup secrets stored hashed, resistant to guessing | Supabase stores a hash of the email and the one-time code, not a salted slow hash. With `otp_length = 10` (about 33 bits), a 10-minute expiry and Supabase's verification limit, guessing is impractical, but this is still short of the requirement | **Exception EX-02** (approved 29 Oct 2026) |
 | 6.5.3 | 2 | Codes generated with a CSPRNG | Supabase Auth | Planned (provider) |
 | 6.5.4 | 2 | At least 20 bits of entropy | `otp_length = 10`, the maximum Supabase allows, gives about 33 bits. The token hash is derived from this code, so it adds no entropy of its own (review M1) | Planned (Tasks 4, 17) |
 | 6.5.5 | 2 | Out-of-band requests expire within 10 minutes | **10 minutes** (`otp_expiry = 600`). Tightened from the approved 15 minutes on 29 Oct 2026 to meet this requirement | Planned (Tasks 4, 17) |
 | 6.6.1 | 2 | Phone and SMS OTP only for verified numbers | N/A: no SMS or phone | N/A |
-| 6.6.2 | 2 | Out-of-band tokens bound to the original request | **Not met:** the token-hash link works in any browser, so staff can open it on the store device or their phone. PKCE would bind it to the requesting browser but break that cross-device use | **Exception EX-02 (proposed)** |
+| 6.6.2 | 2 | Out-of-band tokens bound to the original request | **Not met:** the token-hash link works in any browser, so staff can open it on the store device or their phone. PKCE would bind it to the requesting browser but break that cross-device use | **Exception EX-02** (approved 29 Oct 2026) |
 | 6.6.3 | 2 | Brute-force protection on code-based out-of-band auth | Supabase `token_verifications` limit (10 per 5 minutes per IP), which also covers direct API calls that skip Netlify; 10-character code; 10-minute expiry; `/auth/*` limited at the edge too | Planned (Tasks 4, 16, 17) |
 | 6.8.1–6.8.4 | 2 | External identity providers | N/A: no SSO, SAML or external IdPs | N/A |
 
@@ -99,7 +99,7 @@ The Academy's only learner authentication is an **email magic link**. ASVS 5.0 t
 | 7.4.4 | 2 | Visible logout on every authenticated page | Dashboard, and the signed-in join and change-store views | Planned (Tasks 12, 14) |
 | 7.4.5 | 2 | Admins can end a user's or everyone's sessions | Phase 6 (admin area) | Phase 6 |
 | 7.5.1 | 2 | Re-authentication before changing sensitive attributes | Email change through the Auth API needs confirmation links from both the old and new addresses (`double_confirm_changes`), so control of the current mailbox is proven again. Passwords can't be set. The app offers no email-change screen | Planned (Tasks 3, 4) |
-| 7.5.2 | 2 | Users can view and end their active sessions | **Partly:** "Sign out on all devices" ends them all, but there's no list of sessions | **Exception EX-02 (proposed)** |
+| 7.5.2 | 2 | Users can view and end their active sessions | **Partly:** "Sign out on all devices" ends them all, but there's no list of sessions | **Exception EX-02** (approved 29 Oct 2026) |
 | 7.6.1 | 2 | RP and IdP session lifetimes | N/A: no federation | N/A |
 | 7.6.2 | 2 | A session is created only by explicit user action | The magic link opens a confirm page; the session starts only when the learner presses Continue (POST) | Planned (Task 11) |
 
