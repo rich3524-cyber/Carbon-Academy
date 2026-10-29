@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { LessonNav } from '@/components/lessons/LessonNav'
+import { QuizPanel } from '@/components/quiz/QuizPanel'
 import { Badge } from '@/components/ui/Badge'
 import { buttonClasses } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
@@ -84,6 +85,15 @@ async function Lesson({ params }: Pick<Props, 'params'>) {
         )}
       </div>
       {data.summary && <p className="mt-6 max-w-prose">{data.summary}</p>}
+      {/* Lessons without a video have no quiz (decision 9). The panel loads everything through
+          Server Actions after the page renders, so the page itself stays static (T-36). */}
+      {data.vimeoId && (
+        <QuizPanel
+          lessonId={data.id}
+          lessonPath={`/lessons/${data.category.slug}/${data.slug}`}
+          analytics={{ lesson_slug: data.slug, category_slug: data.category.slug }}
+        />
+      )}
       {warrantyUrl && (
         <p className="mt-8">
           <a className={buttonClasses({ variant: 'secondary' })} href={warrantyUrl} rel="noopener">

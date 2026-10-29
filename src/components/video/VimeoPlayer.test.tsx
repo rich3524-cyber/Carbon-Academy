@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { PROGRESS_SAVED } from '@/lib/progress/events'
 import { VimeoPlayer, vimeoEmbedUrl } from './VimeoPlayer'
 
 const mocks = vi.hoisted(() => ({
@@ -76,6 +77,30 @@ describe('VimeoPlayer progress (PRD 5.3)', () => {
       percent: 35,
       seconds: 105,
     })
+  })
+
+  it('announces each saved step so the quiz can unlock without a reload', async () => {
+    mocks.getResumePoint.mockResolvedValue({ signedIn: true, seconds: 0 })
+    const heard: unknown[] = []
+    const listener = (event: Event) => heard.push((event as CustomEvent).detail)
+    window.addEventListener(PROGRESS_SAVED, listener)
+    await pressPlay()
+    mocks.handlers.ended?.({ percent: 1, seconds: 300 })
+    await vi.waitFor(() => expect(heard).toEqual([{ lessonId: LESSON_ID, percent: 100 }]))
+    window.removeEventListener(PROGRESS_SAVED, listener)
+  })
+
+  it('announces nothing when a save fails', async () => {
+    mocks.getResumePoint.mockResolvedValue({ signedIn: true, seconds: 0 })
+    mocks.saveProgress.mockResolvedValue({ saved: false })
+    const heard: unknown[] = []
+    const listener = (event: Event) => heard.push((event as CustomEvent).detail)
+    window.addEventListener(PROGRESS_SAVED, listener)
+    await pressPlay()
+    mocks.handlers.ended?.({ percent: 1, seconds: 300 })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(heard).toEqual([])
+    window.removeEventListener(PROGRESS_SAVED, listener)
   })
 })
 
