@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SignOutButton, SignOutEverywhereButton } from '@/components/account/SignOutButton'
+import { Badge } from '@/components/ui/Badge'
 import { ButtonLink } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -48,14 +49,15 @@ export default async function DashboardPage() {
         </h2>
         <p className="mt-3">
           <span className="text-h2 font-bold text-carbon-cyan">{core.done}</span> of {core.total}{' '}
-          core lessons watched
+          core lessons complete
         </p>
         <div className="mt-4">
-          <ProgressBar percent={corePercent} label="Core lessons watched" />
+          <ProgressBar percent={corePercent} label="Core lessons complete" />
         </div>
+        {/* Draft copy, awaiting Rich's approval (brand p.69, Phase 4 decision 8). */}
         <p className="mt-4 text-small">
-          Watch every core lesson and pass its quiz to become Carbon Certified. Quizzes are on the
-          way.
+          A lesson is complete when you pass its quiz. Complete every core lesson to become Carbon
+          Certified.
         </p>
       </section>
 
@@ -83,6 +85,9 @@ export default async function DashboardPage() {
                     label={`${lesson.title}: ${lesson.percent}% watched`}
                   />
                 </div>
+                {lesson.percent >= 90 && (
+                  <p className="mt-2 text-small">Take the quiz to complete it.</p>
+                )}
               </li>
             ))}
           </ul>
@@ -112,6 +117,7 @@ export default async function DashboardPage() {
                   {lesson.title}
                 </Link>
                 {lesson.isCore && <span className="text-small">(core)</span>}
+                {lesson.passed && <Badge tone="accent">Passed</Badge>}
               </li>
             ))}
           </ul>

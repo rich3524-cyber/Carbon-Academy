@@ -1,40 +1,40 @@
 import { describe, expect, it } from 'vitest'
-import { type ProgressRow, summariseProgress } from './summary'
+import { summariseProgress } from './summary'
 
-const row = (over: Partial<ProgressRow>): ProgressRow => ({
-  maxPercent: 50,
-  completedAt: null,
-  lesson: { slug: 'l1', title: 'Lesson 1', isCore: true, categorySlug: 'winches' },
-  ...over,
+const lesson = (slug: string, isCore = true) => ({ slug, title: slug, isCore, categorySlug: 'c' })
+const row = (id: string, maxPercent: number, completedAt: string | null, isCore = true) => ({
+  lessonId: id,
+  maxPercent,
+  completedAt,
+  lesson: lesson(id, isCore),
 })
 
-describe('summariseProgress', () => {
-  it('splits in-progress from completed and counts core lessons done', () => {
-    const result = summariseProgress(
-      [
-        row({}),
-        row({
-          maxPercent: 95,
-          completedAt: '2026-10-29T00:00:00Z',
-          lesson: { slug: 'l2', title: 'Lesson 2', isCore: true, categorySlug: 'winches' },
-        }),
-        row({
-          maxPercent: 100,
-          completedAt: '2026-10-29T00:00:00Z',
-          lesson: { slug: 'l3', title: 'Lesson 3', isCore: false, categorySlug: 'recovery' },
-        }),
-      ],
-      8,
+describe('summariseProgress (decision 8)', () => {
+  const quiz = { passed: new Set(['passed']), withQuiz: new Set(['passed', 'watched-quiz']) }
+
+  it('a lesson with a quiz is complete only when passed', () => {
+    const d = summariseProgress(
+      [row('passed', 100, 'x'), row('watched-quiz', 100, 'x'), row('no-quiz', 95, 'x')],
+      5,
+      quiz,
     )
-    expect(result.inProgress.map((l) => l.href)).toEqual(['/lessons/winches/l1'])
-    expect(result.completed.map((l) => l.href)).toEqual([
-      '/lessons/winches/l2',
-      '/lessons/recovery/l3',
+    expect(d.completed.map((l) => [l.title, l.passed])).toEqual([
+      ['passed', true],
+      ['no-quiz', false],
     ])
-    expect(result.core).toEqual({ done: 1, total: 8 })
+    expect(d.inProgress.map((l) => l.title)).toEqual(['watched-quiz'])
+    expect(d.core).toEqual({ done: 2, total: 5 })
+  })
+
+  it('a lesson with no quiz still completes at 90% watched', () => {
+    const d = summariseProgress([row('no-quiz', 50, null)], 1, quiz)
+    expect(d.inProgress).toHaveLength(1)
+    expect(d.core.done).toBe(0)
   })
 
   it('skips rows whose lesson is no longer published (RLS returns null)', () => {
-    expect(summariseProgress([row({ lesson: null })], 3).inProgress).toEqual([])
+    const d = summariseProgress([{ ...row('gone', 50, null), lesson: null }], 3, quiz)
+    expect(d.inProgress).toEqual([])
+    expect(d.completed).toEqual([])
   })
 })
