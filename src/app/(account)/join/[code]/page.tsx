@@ -11,6 +11,10 @@ import { StoreCodeForm } from '../StoreCodeForm'
 
 export const metadata: Metadata = { title: 'Join your store', robots: { index: false } }
 
+// Per-request page: navigations between account pages are checked separately from the layout's
+// opt-out, so each page opts out of instant navigation too (Next.js 16 instant-navigation guide).
+export const instant = false
+
 export default async function JoinStorePage({ params }: PageProps<'/join/[code]'>) {
   const parsed = StoreCode.safeParse((await params).code)
   const store = parsed.success ? await lookupStore(parsed.data) : null

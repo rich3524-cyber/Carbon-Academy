@@ -6,6 +6,10 @@ import { SignInForm } from './SignInForm'
 
 export const metadata: Metadata = { title: 'Sign in', robots: { index: false } }
 
+// Per-request page: navigations between account pages are checked separately from the layout's
+// opt-out, so each page opts out of instant navigation too (Next.js 16 instant-navigation guide).
+export const instant = false
+
 export default async function SignInPage() {
   if (await getCurrentUser()) redirect('/dashboard')
   return (

@@ -1,5 +1,6 @@
 import 'server-only'
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import { cache } from 'react'
 import { createSessionClient } from '@/lib/supabase/server'
 
@@ -12,6 +13,9 @@ export type CurrentUser = { id: string; firstName: string; email: string; storeN
  * signed out. Per-request memoised with React cache; never 'use cache' (control 14).
  */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  // A session read is request-time by nature. Saying so up front also keeps Next.js from
+  // trying to prerender Supabase's token-expiry check (it reads the clock).
+  await connection()
   const supabase = await createSessionClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) return null
