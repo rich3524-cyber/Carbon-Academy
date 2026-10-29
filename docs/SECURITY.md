@@ -179,6 +179,7 @@ Section 5 says Tier B/C projects don't launch with an undefined retention period
 | Supabase publishable key | Public reads under RLS | Netlify env var (public) | When compromised |
 | Supabase secret key | Admin actions, certificate issuing, scheduled jobs | Netlify env var, server-only, production context only | Every 12 months, and on staff change |
 | Staging Supabase keys | Deploy previews | Netlify deploy-preview context | Every 12 months |
+| Staging Supabase secret key (local copy) | Creating fictional preview users with `scripts/staging-sign-in-link.mjs` (EX-01: test accounts only) | Rich's machine, `.env.staging.local` (git-ignored); never in Netlify, never in chat | Rotate with the staging keys every 12 months, and at once if the machine is lost; revoke in Supabase → Project Settings → API Keys |
 | Vimeo access token (read-only) | Video metadata | Netlify env var, server-only | Every 12 months |
 | SMTP credentials | Transactional email | Supabase Auth SMTP settings | Every 12 months |
 

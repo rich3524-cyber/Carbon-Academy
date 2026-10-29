@@ -63,7 +63,7 @@ All audiences see the same content. The Academy is product information only. **N
 5. Below the video, a soft prompt: "Want to test your knowledge? Sign in to take the quiz." This is optional.
 
 ### 5.2 Retail staff onboarding
-1. Carbon sends the partner an onboarding email containing `academy.carbonoffroad.com.au/join/BCF-ROB-7K2Q`.
+1. Carbon sends the partner an onboarding email containing `academy.carbonoffroad.com.au/join/BCF-ROB-7K2Q9MXH`. Store codes are a partner prefix, a location, then 8 random characters (Crockford base32: no I, L, O or U), typed in any case (Phase 3 decision 5).
 2. The join page shows the store name for confirmation ("You're joining: BCF Robina") and asks for first name, last name and email.
 3. Optional unticked checkbox: marketing emails from Carbon Offroad (Spam Act 2003).
 4. Magic link sent. Clicking it lands them on their dashboard showing progress towards Carbon Certified.
