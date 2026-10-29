@@ -52,8 +52,12 @@ describe('brand guard', () => {
     expect(offenders(copyFiles, /(?<![/@])CarbonOffroad(?!_)|Carbon Off[\s-]Road/)).toEqual([])
   })
 
+  // Email HTML can't use CSS tokens, so BRAND.md gives the email colours as hex (p.45). Only the
+  // email templates may use them.
   it('uses colour tokens, not raw hex values, in components', () => {
-    expect(offenders(sourceFiles, /#[0-9a-fA-F]{3,8}\b/)).toEqual([])
+    const emailTemplates = join(root, 'src', 'lib', 'email')
+    const files = sourceFiles.filter((path) => !path.startsWith(emailTemplates))
+    expect(offenders(files, /#[0-9a-fA-F]{3,8}\b/)).toEqual([])
   })
 
   // BRAND.md "Website style" (approved 29 Oct 2026): rounded corners match carbonoffroad.com.au,
