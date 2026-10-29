@@ -24,3 +24,12 @@ A threat closes when its control is implemented **and** verified.
 | T-06 | Lesson page | A malicious `vimeo_id` or warranty URL rendered into `src` or `href` | Tampering (XSS) | `isVimeoId` and `safeHttpsUrl` with a host allowlist; CSP `frame-src` allows Vimeo only | Verified (unit tests) |
 | T-07 | Vimeo iframe | Third-party tracking of visitors | Information disclosure | Click-to-play; `dnt=1`; tag inventory; APP 8 disclosure | Implemented |
 | T-08 | QR counts | Link scanners and bots open QR links ahead of the user, inflating counts | Repudiation (data quality) | Accepted: counts are indicative, not billing data | Accepted (29 Oct 2026) |
+
+## Supabase security advisor review
+
+Run on staging after the Phase 2 migration, 29 October 2026.
+
+| Finding | Level | Decision |
+|---|---|---|
+| `rls_enabled_no_policy` on `qr_links`, `qr_scans` | INFO | **Intended.** Deny-all: no role reads or writes these tables directly. |
+| `anon_security_definer_function_executable` and `authenticated_security_definer_function_executable` on `log_qr_scan` | WARN | **Intended, by design.** The public `/go` route must record scans, and this function is the narrowest write path: one validated, capped insert with an empty `search_path` (T-01, T-02). The alternatives are worse: granting anon direct insert on `qr_scans` (more surface), or using the secret key on every public `/go` request. Re-review whenever the function changes. |
