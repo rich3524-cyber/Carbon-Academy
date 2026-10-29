@@ -4393,7 +4393,12 @@ The PR description:
 - Public pages are unchanged: `/lessons` keeps the public CSP without a nonce, and its CDN `Cache-Control`.
 - `Cache-Control: private, no-store` was set on `/spike`.
 
-**2. Netlify edge `rateLimit` in front of a Next.js path:** pending. It needs a deploy preview, and those are built only for pull requests.
+**2. Netlify edge `rateLimit` in front of a Next.js path: works.** Checked on deploy preview 15 ([rich3524-cyber/Carbon-Academy#15](https://github.com/rich3524-cyber/Carbon-Academy/pull/15)), 29 October 2026:
+- With `windowLimit: 5` per minute on `/spike`, Rich saw the page blocked with Netlify's 429 "Too Many Requests" after 5 refreshes in a minute.
+- **Netlify's team-login gate (deploy previews) answers before the edge function.** Ten unauthenticated requests all got `401` and none were counted. So on previews the limit is testable only when signed in. Production has no gate, so the limit applies to everyone.
+- The browser pane couldn't hold a Netlify session, so this check was done by Rich in his own browser. Plan Task 17's preview checks need the same arrangement, or a signed-in pane.
+
+No fallback is needed: Task 16 goes ahead with Netlify edge rate limits.
 
 **3. `@supabase/ssr` session refresh on Netlify:** checked in Task 7 Step 7 and Task 17, once real auth exists.
 
