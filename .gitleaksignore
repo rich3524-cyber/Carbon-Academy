@@ -1,0 +1,8 @@
+# Confirmed false positives only. Each entry names one finding in one commit, so a real secret
+# in any other place still fails CI (security framework control 13). Record every entry in
+# docs/security/VULNERABILITIES.md, "Secret-scan findings".
+
+# 29 Oct 2026: a dummy test password in the Phase 3 plan (made-up text for a planned test that
+# checks passwords are refused). Not a credential; never used anywhere.
+6ebb555d02fa1a07ab5964f0219822d233bf875d:docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.md:generic-api-key:662
+6ebb555d02fa1a07ab5964f0219822d233bf875d:docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.md:generic-api-key:665

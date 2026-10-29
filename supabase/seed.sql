@@ -33,3 +33,15 @@ insert into public.qr_links (slug, lesson_id)
 select v.slug, l.id
 from (values ('scout-pro-10k-v3'), ('test-slug')) as v (slug)
 join public.lessons l on l.slug = 'scout-pro-10k-v3';
+
+-- Phase 3 fixtures: fictional partner and stores (TST prefix). Never real stores (EX-01).
+insert into public.partners (id, name, type) values
+  ('00000000-0000-4000-8000-000000000101', 'Test Partner', 'retail_group'),
+  -- A second partner, so tests prove cross-partner isolation (review finding).
+  ('00000000-0000-4000-8000-000000000102', 'Other Partner', 'independent');
+
+insert into public.stores (partner_id, name, suburb, state, store_code, active) values
+  ('00000000-0000-4000-8000-000000000101', 'Test Store Robina', 'Robina', 'QLD', 'TST-ROB-7K2Q9MXH', true),
+  ('00000000-0000-4000-8000-000000000101', 'Test Store Nerang', 'Nerang', 'QLD', 'TST-NER-3H8W4DPA', true),
+  ('00000000-0000-4000-8000-000000000101', 'Test Store Closed', 'Southport', 'QLD', 'TST-OLD-9X9X9X9X', false),
+  ('00000000-0000-4000-8000-000000000102', 'Other Store Burleigh', 'Burleigh Heads', 'QLD', 'TST-BUR-5T6Y7Z8W', true);

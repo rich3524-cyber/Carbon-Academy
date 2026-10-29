@@ -15,7 +15,7 @@ At the start of each phase, paste the kick-off prompt into Claude Code. Claude C
 | 0. Accounts and assets | In progress | Rich. Supabase, Netlify, logo SVGs and brand guidelines done |
 | 1. Foundation | Done | Live at https://carbonoffroadacademy.netlify.app (PR #1, fix PR #8). Open before Phase 2: home copy and product names approval, security@ mailbox, branch protection on main, Dependabot PR triage |
 | 2. Video library | Done | Live 29 Oct 2026 (PRs #10, #11). Lighthouse mobile lesson page 100/100. Open: a Carbon test video ID and Vimeo embed allowlist (the "video plays" criterion was verified only with Vimeo's public demo video locally), copy approval |
-| 3. Accounts and progress | Not started | |
+| 3. Accounts and progress | Built; staging verified, production pending | Built on `feat/phase-3-accounts` (PR #15). Local: join (staff and customer), magic-link confirm, dashboard, change store, sign-out, progress saves (DB and action tests). Staging: migration, settings and preview sign-in checked 29 Oct 2026. Open: privacy policy text (decision 7), the Carbon test Vimeo video for the in-player progress check (flag 16), custom SMTP sender (D5), the `__Host-` cookie and Back-button checks on the preview, production migration and settings at merge. Exception EX-02 approved; EX-01 still open, so production sign-ups stay off |
 | 4. Quizzes | Not started | |
 | 5. Certification | Not started | |
 | 6. Admin | Not started | |

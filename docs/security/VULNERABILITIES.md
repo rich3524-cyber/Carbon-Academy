@@ -14,3 +14,13 @@ Every advisory that could affect the Academy, with how it was validated and clos
 - **Dependabot alerts cover declared packages only.** They don't see the React copy inside Next.js, and `npm audit` didn't flag V-01. Treat Next.js and React advisories as critical regardless of what Dependabot says.
 - **Watch for advisories:** on GitHub, watch `vercel/next.js` and `facebook/react` with **Custom → Security alerts** (Rich). Assess each one within 24 hours and record it here.
 - **Patch quickly:** keep Next.js on the latest patch release of its line. Security updates bypass the Dependabot cooldown.
+
+- **Phase 3 audit (29 Oct 2026):** `npm audit` reports 0 vulnerabilities, including the new `@supabase/ssr` 0.12.7 and its only dependency `cookie` 1.1.1. No open advisories for either on that date.
+
+## Secret-scan findings (control 13, gitleaks in CI)
+
+Each finding is triaged before it's ignored. Only a confirmed false positive goes into `.gitleaksignore`, by its exact fingerprint (commit, file, rule, line), so the same text anywhere else still fails CI. A real secret is revoked at its provider first, then removed from history.
+
+| Date | Fingerprint (commit:file:rule:line) | What it was | Decision |
+|---|---|---|---|
+| 29 Oct 2026 | `6ebb555…:docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.md:generic-api-key:662` and `…:665` | A made-up password in a planned DB test that checks passwords are refused (`password: '<dummy>'`). Entropy 3.69, over the 3.5 threshold. Not a credential, never used, and no code holds it | **False positive.** Ignored by fingerprint. The plan's test now builds its value at run time, so it can't be flagged again. PR #15, run 40803668392 |

@@ -1,7 +1,7 @@
 /**
  * Baseline browser security headers (ITWM framework control 11, section 4).
- * Public pages use an allowlist CSP in Report-Only mode. Authenticated areas get a
- * nonce-based CSP in Phase 3. X-Frame-Options enforces the framing block while the
+ * Public pages use an allowlist CSP in Report-Only mode. Account pages get a nonce-based
+ * CSP from proxy.ts (src/config/csp.ts). X-Frame-Options enforces the framing block while the
  * CSP is report-only.
  */
 export function contentSecurityPolicy(dev: boolean): string {
@@ -15,7 +15,7 @@ export function contentSecurityPolicy(dev: boolean): string {
     // Lesson videos only (BUILD_PLAN Phase 2, tag inventory). No other third-party frames.
     'frame-src': ['https://player.vimeo.com'],
     'object-src': ["'none'"],
-    'base-uri': ["'self'"],
+    'base-uri': ["'none'"],
     'form-action': ["'self'"],
     'frame-ancestors': ["'none'"],
   }
@@ -23,6 +23,12 @@ export function contentSecurityPolicy(dev: boolean): string {
     .map(([name, values]) => `${name} ${values.join(' ')}`)
     .join('; ')
 }
+
+/**
+ * Public pages get the allowlist CSP from next.config.ts. Account pages are excluded because
+ * proxy.ts gives them a per-request nonce CSP instead (Phase 3 Task 7).
+ */
+export const publicHeaderSource = '/((?!dashboard|sign-in|join|auth).*)'
 
 export function securityHeaders(dev: boolean) {
   return [

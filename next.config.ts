@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next'
-import { securityHeaders } from './src/config/security-headers'
+import { publicHeaderSource, securityHeaders } from './src/config/security-headers'
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -16,11 +16,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   async headers() {
+    const all = securityHeaders(process.env.NODE_ENV === 'development')
+    const isCsp = (header: { key: string }) => header.key === 'Content-Security-Policy-Report-Only'
     return [
-      {
-        source: '/:path*',
-        headers: securityHeaders(process.env.NODE_ENV === 'development'),
-      },
+      { source: '/:path*', headers: all.filter((header) => !isCsp(header)) },
+      // Account pages get a per-request nonce CSP from src/proxy.ts instead.
+      { source: publicHeaderSource, headers: all.filter(isCsp) },
     ]
   },
 }

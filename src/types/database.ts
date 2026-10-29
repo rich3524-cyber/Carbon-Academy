@@ -37,6 +37,32 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"lesson_progress": {
+                  Row: {
+                    "completed_at": string | null,"last_position_seconds": number,"lesson_id": string,"max_percent": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed_at"?: string | null,"last_position_seconds"?: number,"lesson_id": string,"max_percent"?: number,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "completed_at"?: string | null,"last_position_seconds"?: number,"lesson_id"?: string,"max_percent"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "lesson_progress_lesson_id_fkey"
+      columns: ["lesson_id"]
+isOneToOne: false
+      referencedRelation: "lessons"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "lesson_progress_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"lessons": {
                   Row: {
                     "category_id": string,"created_at": string,"duration_seconds": number | null,"id": string,"is_core": boolean,"product_name": string | null,"published": boolean,"region": Database["public"]['Enums']["region"],"slug": string,"sort_order": number,"summary": string | null,"title": string,"vimeo_id": string | null
@@ -54,6 +80,40 @@ export type Database = {
       columns: ["category_id"]
 isOneToOne: false
       referencedRelation: "categories"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"partners": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"parent_group": string | null,"type": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"parent_group"?: string | null,"type"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"parent_group"?: string | null,"type"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"profiles": {
+                  Row: {
+                    "active": boolean,"created_at": string,"email": string,"first_name": string,"id": string,"last_active_at": string,"last_name": string,"marketing_opt_in": boolean,"marketing_opt_in_at": string | null,"role": string,"store_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"email": string,"first_name": string,"id": string,"last_active_at"?: string,"last_name": string,"marketing_opt_in"?: boolean,"marketing_opt_in_at"?: string | null,"role"?: string,"store_id"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"email"?: string,"first_name"?: string,"id"?: string,"last_active_at"?: string,"last_name"?: string,"marketing_opt_in"?: boolean,"marketing_opt_in_at"?: string | null,"role"?: string,"store_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profiles_store_id_fkey"
+      columns: ["store_id"]
+isOneToOne: false
+      referencedRelation: "stores"
       referencedColumns: ["id"]
     }
                   ]
@@ -111,16 +171,55 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"stores": {
+                  Row: {
+                    "active": boolean,"country": string,"created_at": string,"id": string,"name": string,"partner_id": string,"state": string | null,"store_code": string,"suburb": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"country"?: string,"created_at"?: string,"id"?: string,"name": string,"partner_id": string,"state"?: string | null,"store_code": string,"suburb"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"country"?: string,"created_at"?: string,"id"?: string,"name"?: string,"partner_id"?: string,"state"?: string | null,"store_code"?: string,"suburb"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stores_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "log_qr_scan":
+            "current_learner":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"join_store":
+{ Args: { "p_code": string }; Returns: {
+              "store_name": string
+            }[]
+                           },
+"log_qr_scan":
 { Args: { "p_slug": string,"p_utm_campaign"?: string,"p_utm_medium"?: string,"p_utm_source"?: string }; Returns: {
               "category_slug": string,"lesson_slug": string
             }[]
+                           },
+"lookup_store":
+{ Args: { "p_code": string }; Returns: {
+              "partner_name": string,"state": string,"store_name": string,"suburb": string
+            }[]
+                           },
+"normalise_store_code":
+{ Args: { "p_code": string }; Returns: string
+                           },
+"save_lesson_progress":
+{ Args: { "p_lesson_id": string,"p_percent": number,"p_position_seconds": number }; Returns: undefined
                            }
           }
           Enums: {

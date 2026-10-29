@@ -4,6 +4,8 @@ import type VimeoPlayerSdk from '@vimeo/player'
 import { useEffect, useRef, useState } from 'react'
 import { type PlayerSignal, dueMilestones } from '@/lib/analytics/milestones'
 import { type EventProps, type VideoEvent, track } from '@/lib/analytics/track'
+import { getResumePoint, saveProgress } from '@/lib/progress/actions'
+import { type PlayerEvent, nextSave, resumeFrom } from '@/lib/progress/throttle'
 
 /** Carbon Cyan without the hash, as Vimeo expects (BRAND.md video player). */
 const PLAYER_COLOUR = '00a4c7'
@@ -22,13 +24,21 @@ export function vimeoEmbedUrl(vimeoId: string): string {
   return `https://player.vimeo.com/video/${vimeoId}?${params}`
 }
 
-type Props = { vimeoId: string; title: string; lessonSlug: string; categorySlug: string }
+type Props = {
+  vimeoId: string
+  title: string
+  lessonId: string
+  lessonSlug: string
+  categorySlug: string
+}
 
 /**
  * Click-to-play: nothing loads from Vimeo until the visitor presses play (security framework
- * control 20). @vimeo/player then attaches to the iframe for analytics milestones.
+ * control 20). @vimeo/player then attaches to the iframe for analytics milestones. Signed-in
+ * learners get resume and progress saves through Server Actions (PRD 5.3), so the lesson page
+ * itself stays static.
  */
-export function VimeoPlayer({ vimeoId, title, lessonSlug, categorySlug }: Props) {
+export function VimeoPlayer({ vimeoId, title, lessonId, lessonSlug, categorySlug }: Props) {
   const [started, setStarted] = useState(false)
   const frame = useRef<HTMLIFrameElement>(null)
   const fired = useRef(new Set<VideoEvent>())
@@ -45,20 +55,50 @@ export function VimeoPlayer({ vimeoId, title, lessonSlug, categorySlug }: Props)
     }
     let player: VimeoPlayerSdk | undefined
     let cancelled = false
+    // Progress is tracked only for signed-in learners. getResumePoint says which this is.
+    const progress = { tracking: false, step: -1 }
+    type Timing = { percent: number; seconds: number }
+    const save = (event: PlayerEvent, data: Timing) => {
+      if (!progress.tracking) return
+      const next = nextSave(progress.step, event, data.percent)
+      progress.step = next.step
+      if (!next.save) return
+      const percent = event === 'ended' ? 100 : Math.round(data.percent * 100)
+      void saveProgress({ lessonId, percent, seconds: Math.floor(data.seconds) }).then((result) => {
+        if (!result.saved) progress.tracking = false
+      })
+    }
+
     import('@vimeo/player').then(({ default: Player }) => {
       if (cancelled || !frame.current) return
-      player = new Player(frame.current)
-      player.on('play', () => emit({ type: 'play' }))
-      player.on('timeupdate', (data: { percent: number }) =>
-        emit({ type: 'progress', percent: data.percent }),
-      )
-      player.on('ended', () => emit({ type: 'ended' }))
+      const instance = new Player(frame.current)
+      player = instance
+      instance.on('play', () => emit({ type: 'play' }))
+      instance.on('timeupdate', (data: Timing) => {
+        emit({ type: 'progress', percent: data.percent })
+        save('timeupdate', data)
+      })
+      instance.on('pause', (data: Timing) => save('pause', data))
+      instance.on('ended', (data: Timing) => {
+        emit({ type: 'ended' })
+        save('ended', data)
+      })
+      getResumePoint(lessonId)
+        .then(async ({ signedIn, seconds }) => {
+          if (cancelled || !signedIn) return
+          progress.tracking = true
+          const from = resumeFrom(seconds, await instance.getDuration())
+          if (from > 0) await instance.setCurrentTime(from)
+        })
+        .catch(() => {
+          // Progress is a nice-to-have; playback carries on without it.
+        })
     })
     return () => {
       cancelled = true
-      for (const event of ['play', 'timeupdate', 'ended'] as const) player?.off(event)
+      for (const event of ['play', 'timeupdate', 'pause', 'ended'] as const) player?.off(event)
     }
-  }, [started, lessonSlug, categorySlug])
+  }, [started, lessonId, lessonSlug, categorySlug])
 
   if (!started) {
     return (
