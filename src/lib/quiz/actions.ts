@@ -1,5 +1,8 @@
 'use server'
 
+import { getProgramSettings } from '@/lib/content/settings'
+import { certificateIssuedEmail } from '@/lib/email/certificate'
+import { sendEmail } from '@/lib/email/send'
 import { logSecurityEvent } from '@/lib/log'
 import {
   type QuizQuestion,
@@ -9,6 +12,7 @@ import {
   refusalFor,
   toQuizState,
 } from '@/lib/quiz/shape'
+import { siteUrl } from '@/lib/site'
 import { createSessionClient } from '@/lib/supabase/server'
 import { QuizLessonId, QuizSubmission } from '@/lib/validation/quiz'
 
@@ -20,7 +24,8 @@ export type QuizStatus = { state: QuizState; attemptsLeft: number }
 export type StartResult =
   { ok: true; questions: QuizQuestion[] } | { ok: false; reason: QuizRefusal }
 export type SubmitResult =
-  { ok: true; score: number; total: number; passed: boolean } | { ok: false; reason: QuizRefusal }
+  | { ok: true; score: number; total: number; passed: boolean; certified: boolean }
+  | { ok: false; reason: QuizRefusal }
 
 async function signedInClient() {
   const supabase = await createSessionClient()
@@ -71,5 +76,41 @@ export async function submitQuiz(input: unknown): Promise<SubmitResult> {
     lessonId,
     outcome: data.passed ? 'passed' : 'failed',
   })
-  return { ok: true, score: data.score, total: data.total, passed: data.passed }
+  if (data.certified) {
+    logSecurityEvent('certificate_issued', { userId: session.userId, code: 'issued' })
+    await emailCertificate(session.supabase)
+  }
+  return {
+    ok: true,
+    score: data.score,
+    total: data.total,
+    passed: data.passed,
+    certified: data.certified,
+  }
+}
+
+type SessionClient = Awaited<ReturnType<typeof createSessionClient>>
+
+/**
+ * "You're Carbon Certified" (plan decision 2). The learner's own profile row gives the first
+ * name and address. A failed email never undoes or hides the certificate: it's on the dashboard.
+ */
+async function emailCertificate(supabase: SessionClient) {
+  try {
+    const [{ data: profile }, settings] = await Promise.all([
+      supabase.from('profiles').select('first_name, email').single(),
+      getProgramSettings(),
+    ])
+    if (!profile) return
+    await sendEmail(
+      certificateIssuedEmail({
+        to: profile.email,
+        firstName: profile.first_name,
+        siteUrl: siteUrl(),
+        companyAddress: settings.companyAddress,
+      }),
+    )
+  } catch {
+    logSecurityEvent('email_skipped', { code: 'certificate_issued_failed' })
+  }
 }

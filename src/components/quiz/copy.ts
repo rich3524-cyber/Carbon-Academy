@@ -9,6 +9,7 @@ export const QUIZ_COPY = {
   passedBefore: "You've passed this quiz. Take it again any time.",
   limited: "That's 10 goes in the last hour. Have another look at the video and try again later.",
   pass: "Nailed it. That's one more lesson done.",
+  certified: "You're Carbon Certified. Your certificate is ready to download.",
   fail: (score: number, total: number) =>
     `${score} of ${total} correct. Have another look at the video and try again.`,
   error: 'Something went wrong on our end. Give it another go in a minute.',

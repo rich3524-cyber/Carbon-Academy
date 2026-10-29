@@ -21,7 +21,14 @@ type View =
       answers: Record<string, string>
       sending: boolean
     }
-  | { kind: 'result'; score: number; total: number; passed: boolean; attemptsLeft: number }
+  | {
+      kind: 'result'
+      score: number
+      total: number
+      passed: boolean
+      certified: boolean
+      attemptsLeft: number
+    }
   | { kind: 'refused'; reason: QuizRefusal }
 
 type Props = { lessonId: string; lessonPath: string; analytics: EventProps }
@@ -85,12 +92,14 @@ export function QuizPanel({ lessonId, lessonPath, analytics }: Props) {
     const result = await submitQuiz({ lessonId, answers })
     if (!result.ok) return setView({ kind: 'refused', reason: result.reason })
     track(result.passed ? 'quiz_pass' : 'quiz_fail', analytics)
+    if (result.certified) track('certificate_issued', analytics)
     const status = await getQuizStatus(lessonId)
     setView({
       kind: 'result',
       score: result.score,
       total: result.total,
       passed: result.passed,
+      certified: result.certified,
       attemptsLeft: status.attemptsLeft,
     })
   }
@@ -167,6 +176,7 @@ export function QuizPanel({ lessonId, lessonPath, analytics }: Props) {
               score={view.score}
               total={view.total}
               passed={view.passed}
+              certified={view.certified}
               canRetry={view.attemptsLeft > 0}
               onRetry={begin}
             />
