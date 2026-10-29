@@ -22,7 +22,7 @@ export function SiteHeader() {
             </a>
           </div>
           <p className="py-2 text-center font-extrabold uppercase md:py-0">
-            {/* Draft copy, awaiting Rich's approval (brand p.69) */}
+            {/* Copy approved by Rich, 29 Oct 2026 */}
             <Link href="/certified" className="hover:underline">
               Get Carbon Certified
             </Link>
