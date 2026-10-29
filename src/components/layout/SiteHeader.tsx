@@ -5,7 +5,8 @@ import { Container } from '@/components/ui/Container'
 const navLinks = [
   { href: '/lessons', label: 'Lessons' },
   { href: '/certified', label: 'Get certified' },
-  { href: '/sign-in', label: 'Sign in' },
+  // Static header (Phase 3 decision 12): /dashboard sends signed-out visitors to /sign-in.
+  { href: '/dashboard', label: 'My Academy' },
 ]
 
 /**
