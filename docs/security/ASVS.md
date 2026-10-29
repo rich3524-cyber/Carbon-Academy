@@ -34,9 +34,9 @@ Phase 3 plan: `docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.m
 |---|---|---|---|---|
 | 3.2.1 | 1 | Content can't render in the wrong context | `nosniff` on every response; no user uploads; JSON comes only from Server Actions | Met (headers captured 29 Oct 2026, Phase 1) |
 | 3.2.2 | 1 | Text rendered as text, not HTML | React escaping; no `dangerouslySetInnerHTML` | Met (Phase 2, control 07) |
-| 3.3.1 | 1 | Cookies `Secure`, with a `__Host-` or `__Secure-` prefix | `__Host-sb-auth`, `Secure`, on HTTPS. Plain-http local development only uses the unprefixed name | Planned (Task 5; verified in Task 17) |
+| 3.3.1 | 1 | Cookies `Secure`, with a `__Host-` or `__Secure-` prefix | `__Host-sb-auth`, `Secure`, on HTTPS. Plain-http local development only uses the unprefixed name | Met (deploy preview 15, read by Rich in DevTools, 29 Oct 2026: `__Host-sb-auth`, HttpOnly, Secure, SameSite=Lax) |
 | 3.3.2 | 2 | `SameSite` set per cookie's purpose | `Lax`: a learner arriving from an email link should land signed in, and state changes are POST-only with an Origin check | Met (local tests, 29 Oct 2026) |
-| 3.3.3 | 2 | `__Host-` prefix unless deliberately shared | As 3.3.1 | Planned (Task 5) |
+| 3.3.3 | 2 | `__Host-` prefix unless deliberately shared | As 3.3.1 | Met (deploy preview 15, read by Rich in DevTools, 29 Oct 2026: `__Host-sb-auth`, HttpOnly, Secure, SameSite=Lax) |
 | 3.3.4 | 2 | `HttpOnly` on cookies scripts don't need | `HttpOnly`: there is no browser Supabase client | Met (local: no session cookie visible to scripts) |
 | 3.4.1 | 1 | HSTS on all responses, at least a year, and subdomains at L2 | Netlify serves `max-age=31536000; includeSubDomains; preload` on `*.netlify.app`. The app's own header lacks `includeSubDomains` until the academy domain is live | Partial (Phase 7: add `includeSubDomains` with the domain) |
 | 3.4.2 | 1 | Fixed CORS `Access-Control-Allow-Origin` | No CORS headers are sent; Server Actions are same-origin | Met (no CORS) |
