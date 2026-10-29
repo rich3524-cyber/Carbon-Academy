@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Sign in to the Carbon Offroad Academy</title>
+  </head>
+  <body style="margin: 0; padding: 0; background: #e6e6e6">
+    <!-- Preview text (BRAND.md Email: always written) -->
+    <div style="display: none; max-height: 0; overflow: hidden">
+      Your sign-in link. It works once and expires in 10 minutes.
+    </div>
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background: #e6e6e6"
+    >
+      <tr>
+        <td align="center" style="padding: 24px 12px">
+          <table
+            role="presentation"
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            style="width: 100%; max-width: 600px; background: #ffffff"
+          >
+            <tr>
+              <td align="center" style="background: #111111; padding: 24px">
+                <a href="{{ .SiteURL }}">
+                  <img
+                    src="{{ .SiteURL }}/brand/logo-full-white-on-black-transparent-email.png"
+                    width="200"
+                    alt="Carbon Offroad"
+                    style="display: block; width: 200px; height: auto; border: 0"
+                  />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  padding: 32px 32px 8px;
+                  font-family: Arial, Helvetica, sans-serif;
+                  color: #111111;
+                "
+              >
+                <h1 style="margin: 0 0 16px; font-size: 26px; line-height: 1.2; font-weight: bold">
+                  Sign in to the Academy
+                </h1>
+                <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5">
+                  Tap the button to sign in to the Carbon Offroad Academy. The link works once and
+                  expires in 10 minutes.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background: #00a4c7">
+                      <a
+                        href="{{ .SiteURL }}/auth/confirm?next={{ .RedirectTo | urlquery }}#token_hash={{ .TokenHash }}"
+                        style="
+                          display: inline-block;
+                          padding: 14px 28px;
+                          min-height: 16px;
+                          font-family: Arial, Helvetica, sans-serif;
+                          font-size: 16px;
+                          font-weight: bold;
+                          text-transform: uppercase;
+                          color: #111111;
+                          text-decoration: none;
+                        "
+                      >
+                        Sign in
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 24px 0 0; font-size: 16px; line-height: 1.5">
+                  Didn't ask for this? Ignore this email. Nobody can sign in without the link.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 32px 32px"></td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  background: #303030;
+                  padding: 24px 32px;
+                  font-family: Arial, Helvetica, sans-serif;
+                  font-size: 14px;
+                  line-height: 1.5;
+                  color: #ffffff;
+                "
+              >
+                Carbon Offroad (KPD Industries Pty Ltd)<br />
+                Unit 1a, 1 Waterway Drive, Coomera QLD 4209<br />
+                [PHONE TBC]
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
