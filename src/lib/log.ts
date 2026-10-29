@@ -11,6 +11,10 @@ type SecurityEvent =
   | 'quiz_submitted'
   | 'quiz_rate_limited'
   | 'quiz_submit_failed'
+  | 'certificate_issued'
+  | 'certificate_pdf_denied'
+  | 'verify_not_found'
+  | 'email_skipped'
 
 /**
  * IDs, error codes and pass or fail only. Never emails, names, form data, tokens, URLs or quiz
