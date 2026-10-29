@@ -4123,7 +4123,9 @@ Expected: FAIL, because the modules aren't found.
 // Local types keep @netlify/edge-functions out of package.json.
 type Context = { next: () => Promise<Response> }
 
-export default (_request: Request, context: Context) => context.next()
+export default function rateLimitSignIn(_request: Request, context: Context) {
+  return context.next()
+}
 
 export const config = {
   path: ['/sign-in'],
@@ -4137,7 +4139,9 @@ export const config = {
 // Local types keep @netlify/edge-functions out of package.json.
 type Context = { next: () => Promise<Response> }
 
-export default (_request: Request, context: Context) => context.next()
+export default function rateLimitJoin(_request: Request, context: Context) {
+  return context.next()
+}
 
 export const config = {
   path: ['/join', '/join/*'],
@@ -4151,7 +4155,9 @@ export const config = {
 // Local types keep @netlify/edge-functions out of package.json.
 type Context = { next: () => Promise<Response> }
 
-export default (_request: Request, context: Context) => context.next()
+export default function rateLimitAuth(_request: Request, context: Context) {
+  return context.next()
+}
 
 export const config = {
   path: ['/auth/*'],
@@ -4373,3 +4379,22 @@ The PR description:
 | Done when: progress persists across devices | 13 (needs flag 16), 17 |
 | Done when: RLS tests prove isolation | 3 |
 | Done when: customer sign-in without a code | 14 |
+
+---
+
+## Spike results (Task 2), 29 October 2026
+
+**1. Nonce CSP with Cache Components: works.** Checked on a local production build (`next build && next start`):
+- `/spike` (`export const instant = false` plus `await connection()`) builds as fully dynamic (`ƒ`), with no static shell.
+- All 13 `<script>` tags carry the nonce, and it matches the `Content-Security-Policy-Report-Only` header. Each request gets a fresh nonce.
+- **Next.js finds the nonce in the Report-Only request header** (`content-security-policy-report-only`), so Task 7's `CSP_REQUEST_HEADER` stays as written.
+- In the browser pane, the page hydrates with no script violations. The only report was an inline style, because the spike policy had no `style-src`; Task 7's `nonceCsp` allows it with `style-src 'self' 'unsafe-inline'`.
+- **The proxy's CSP header replaced the `next.config.ts` CSP header on the same path**, so the response had one header, not two. Task 7 still keeps the public CSP off account paths (`publicHeaderSource`), so this doesn't depend on that ordering.
+- Public pages are unchanged: `/lessons` keeps the public CSP without a nonce, and its CDN `Cache-Control`.
+- `Cache-Control: private, no-store` was set on `/spike`.
+
+**2. Netlify edge `rateLimit` in front of a Next.js path:** pending. It needs a deploy preview, and those are built only for pull requests.
+
+**3. `@supabase/ssr` session refresh on Netlify:** checked in Task 7 Step 7 and Task 17, once real auth exists.
+
+Lint note: ESLint warns about an anonymous default export in edge functions (`import/no-anonymous-default-export`). Task 16's functions are now named.
