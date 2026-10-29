@@ -181,6 +181,9 @@ Master SVGs from the asset library (Logos and Branding folder), renamed for the 
 | `logo-full-white-on-black-2000.png` | `favicon / carbon offroad logo_full_white on black 2000x1000.png` (2000 × 1000, 106 KB). **Opaque white background around the badge.** Works on white only |
 | `logo-full-white-on-black-transparent-2000.png` | Exported 28 October 2026 from the 2000 px master. Only the white surround connected to the image edge was cleared; the lettering and the anti-aliased edge were kept. Cropped tight to the badge: 1996 × 406, 60 KB. Pixels unchanged otherwise **[Approved]** |
 | `logo-full-white-on-black-transparent-email.png` | The same export at 400 × 81 (7 KB), for the email header shown at 200 px wide (2× for high-density screens) |
+| `logo-icon-white-on-black-2000.webp` | Icon-only master, white badge on black (2000 × 2000), supplied by Rich on 30 October 2026 as a chat attachment, so it may be a re-compressed copy. Source for the favicon, matching carbonoffroad.com.au |
+| `logo-icon-black-on-white-2000.webp` | Icon-only master, black badge on white (2000 × 2000), supplied with the one above |
+| `src/app/favicon.ico`, `icon.png`, `apple-icon.png` | Scaled from `logo-icon-white-on-black-2000.webp` (16, 32 and 48 px; 32 px; 180 px) with `_tools/make-icons.mjs`. Resized only, never redrawn (p.21, p.61). `tests/brand/icons.test.ts` checks they exist |
 | `concrete-texture.jpg` | `Vinyl wrap (1).png` (10131 × 7596, 88.7 MB), resized to 2400 × 1799 JPG at quality 78 (about 1.1 MB). The master isn't committed; Next.js `<Image>` serves smaller sizes and formats from this file |
 
 ### Concrete texture (wrap artwork, p.32, p.55)
@@ -196,7 +199,7 @@ Master SVGs from the asset library (Logos and Branding folder), renamed for the 
 
 Still needed from the asset library (p.68). Request them, never recreate them:
 
-- Icon: `favicon / carbon compact logo no text.png` and `...inverted.png`. An SVG icon if one exists. Used to make `favicon-32.png`, `apple-touch-icon-180.png` (p.45) and `icon.svg`.
+- Icon: **received 30 October 2026** (see the table above). Still wanted: the original files from the asset library, and an SVG icon if one exists.
 - QR master: `qr codes / carbonoffroad QR.svg`, for the house QR style.
 
 ## Website style [Approved by Rich, 29 October 2026]
@@ -399,7 +402,7 @@ Decided by Rich, Sales and Marketing Manager, where the guidelines were silent o
 | 5 | Red for form errors | **Yes**, as `error-red` `#C62828`, also for safety warnings |
 | 6 | "Carbon Certified" and "Carbon Certified Store" | **Both approved** |
 | 7 | Spec unit order | **Metric first** |
-| 8 | Vector icon master | **TBA.** Until one arrives, favicons are made from the icon PNG masters |
+| 8 | Vector icon master | **TBA.** Until one arrives, favicons are made from the icon raster masters (received 30 Oct 2026) |
 | 9 | Transparent email logo | **Exported** from the 2000 px master (`logo-full-white-on-black-transparent-*.png`) |
 
 To raise with the next guidelines update (v1.1): document decisions 1–7 in the PDF, and fix the imperial-first example in the p.61 AI prompt.
