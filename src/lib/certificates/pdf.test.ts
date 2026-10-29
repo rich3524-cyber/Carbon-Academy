@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { PDFDict, PDFDocument, PDFName } from 'pdf-lib'
 import { describe, expect, it, vi } from 'vitest'
 import { LOGO_PATHS, LOGO_VIEWBOX } from './logo-paths'
@@ -29,8 +29,6 @@ describe('certificate PDF', () => {
     expect(Math.round(width)).toBe(842)
     expect(Math.round(height)).toBe(595)
     expect(pdf.getTitle()).toContain('COA-2026-00001')
-    // A sample for the visual brand check (plan Task 11).
-    writeFileSync('../_tools/sample-certificate.pdf', bytes)
   })
 
   it('embeds its fonts (BRAND.md export rule)', async () => {
