@@ -15,7 +15,9 @@ export function Badge({
   children: ReactNode
 }) {
   return (
-    <span className={`inline-block px-2 py-0.5 text-small font-bold uppercase ${tones[tone]}`}>
+    <span
+      className={`inline-block rounded-pill px-3 py-0.5 text-small font-bold uppercase ${tones[tone]}`}
+    >
       {children}
     </span>
   )

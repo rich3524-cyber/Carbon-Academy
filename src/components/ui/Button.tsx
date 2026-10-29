@@ -3,49 +3,33 @@ import type { ComponentProps } from 'react'
 
 type ButtonStyle = {
   variant?: 'primary' | 'secondary'
-  /** Angled = parallelogram matching the logo badge (p.32). Never mix with other corner styles. */
-  shape?: 'square' | 'angled'
   onDark?: boolean
 }
 
+/** Pill buttons, matching carbonoffroad.com.au (BRAND.md Website style). At least 44 px high. */
 const base =
-  'relative isolate inline-flex min-h-11 items-center justify-center px-6 py-3 text-button font-bold uppercase transition-colors'
+  'inline-flex min-h-11 items-center justify-center rounded-pill px-6 py-3 text-button font-extrabold uppercase transition-colors'
 
-const square = {
+const styles = {
   primary: 'bg-carbon-cyan text-carbon-black hover:bg-carbon-black hover:text-carbon-cyan',
   secondary:
     'border-2 border-carbon-black text-carbon-black hover:bg-carbon-black hover:text-white',
   secondaryOnDark: 'border-2 border-white text-white hover:bg-white hover:text-carbon-black',
 }
 
-const angledBase = 'before:absolute before:inset-0 before:-z-10 before:-skew-x-14'
-
-const angled = {
-  primary:
-    'before:bg-carbon-cyan text-carbon-black hover:before:bg-carbon-black hover:text-carbon-cyan',
-  secondary:
-    'before:border-2 before:border-carbon-black text-carbon-black hover:before:bg-carbon-black hover:text-white',
-  secondaryOnDark:
-    'before:border-2 before:border-white text-white hover:before:bg-white hover:text-carbon-black',
-}
-
-export function buttonClasses({
-  variant = 'primary',
-  shape = 'square',
-  onDark = false,
-}: ButtonStyle = {}) {
+export function buttonClasses({ variant = 'primary', onDark = false }: ButtonStyle = {}) {
   const key = variant === 'secondary' && onDark ? 'secondaryOnDark' : variant
-  return shape === 'angled' ? `${base} ${angledBase} ${angled[key]}` : `${base} ${square[key]}`
+  return `${base} ${styles[key]}`
 }
 
 type ButtonProps = ButtonStyle & Omit<ComponentProps<'button'>, 'className'>
 
-export function Button({ variant, shape, onDark, type = 'button', ...props }: ButtonProps) {
-  return <button type={type} className={buttonClasses({ variant, shape, onDark })} {...props} />
+export function Button({ variant, onDark, type = 'button', ...props }: ButtonProps) {
+  return <button type={type} className={buttonClasses({ variant, onDark })} {...props} />
 }
 
 type ButtonLinkProps = ButtonStyle & Omit<ComponentProps<typeof Link>, 'className'>
 
-export function ButtonLink({ variant, shape, onDark, ...props }: ButtonLinkProps) {
-  return <Link className={buttonClasses({ variant, shape, onDark })} {...props} />
+export function ButtonLink({ variant, onDark, ...props }: ButtonLinkProps) {
+  return <Link className={buttonClasses({ variant, onDark })} {...props} />
 }

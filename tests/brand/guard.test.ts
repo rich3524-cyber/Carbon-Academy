@@ -45,15 +45,45 @@ describe('brand guard', () => {
     expect(offenders(copyFiles, /australian[\s-]+made/i)).toEqual([])
   })
 
+  // Account handles in URLs (facebook.com/CarbonOffroadAU) are addresses, not copy, so a
+  // name straight after "/" or "@" is allowed.
   it('spells the brand name as two words (p.16)', () => {
-    expect(offenders(copyFiles, /CarbonOffroad|Carbon Off[\s-]Road/)).toEqual([])
+    expect(offenders(copyFiles, /(?<![/@])CarbonOffroad|Carbon Off[\s-]Road/)).toEqual([])
   })
 
   it('uses colour tokens, not raw hex values, in components', () => {
     expect(offenders(sourceFiles, /#[0-9a-fA-F]{3,8}\b/)).toEqual([])
   })
 
-  it('uses no rounded corners (p.32, p.45)', () => {
-    expect(offenders(sourceFiles, /\brounded(-[a-z0-9]+)?\b/)).toEqual([])
+  // BRAND.md "Website style" (approved 29 Oct 2026): rounded corners match carbonoffroad.com.au,
+  // but only through the named radius tokens, never Tailwind's defaults or arbitrary values.
+  it('rounds corners only with the named website radius tokens', () => {
+    const allowed = /^rounded(-(t|b|l|r|s|e|tl|tr|bl|br))?-(pill|card|field|tile)$/
+    const bad = sourceFiles.flatMap((file) =>
+      readFileSync(file, 'utf8')
+        .split('\n')
+        .flatMap((line, i) =>
+          (line.match(/(?<![\w-])rounded(?:-[\w[\]]+)*/g) ?? [])
+            .filter((token) => !allowed.test(token))
+            .map((token) => `${relative(root, file)}:${i + 1}: ${token}`),
+        ),
+    )
+    expect(bad).toEqual([])
+  })
+
+  it('recognises allowed and disallowed radius classes', () => {
+    const allowed = /^rounded(-(t|b|l|r|s|e|tl|tr|bl|br))?-(pill|card|field|tile)$/
+    for (const ok of [
+      'rounded-pill',
+      'rounded-card',
+      'rounded-t-card',
+      'rounded-field',
+      'rounded-tile',
+    ]) {
+      expect(allowed.test(ok)).toBe(true)
+    }
+    for (const no of ['rounded', 'rounded-lg', 'rounded-full', 'rounded-[25px]', 'rounded-t-lg']) {
+      expect(allowed.test(no)).toBe(false)
+    }
   })
 })

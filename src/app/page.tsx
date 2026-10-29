@@ -14,7 +14,7 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
-      <section className="bg-dust">
+      <section>
         <Container className="py-12 md:py-16">
           <SectionHeader title="Lesson categories" />
           {categories.length === 0 ? (

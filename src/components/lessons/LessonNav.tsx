@@ -14,7 +14,7 @@ export function LessonNav({
   return (
     <nav
       aria-label="Lesson navigation"
-      className="mt-10 grid gap-4 border-t-2 border-dust pt-6 sm:grid-cols-2"
+      className="mt-10 grid gap-4 border-t border-concrete pt-6 sm:grid-cols-2"
     >
       {previous ? (
         <Link className="block" href={`/lessons/${categorySlug}/${previous.slug}`}>

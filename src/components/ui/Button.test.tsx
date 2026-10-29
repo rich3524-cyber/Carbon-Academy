@@ -26,10 +26,10 @@ describe('buttonClasses', () => {
     expect(t).toEqual(expect.arrayContaining(['border-white', 'text-white']))
   })
 
-  it('draws angled buttons as a parallelogram at the badge angle', () => {
-    const t = tokens(buttonClasses({ variant: 'primary', shape: 'angled' }))
-    expect(t).toEqual(expect.arrayContaining(['before:-skew-x-14', 'before:bg-carbon-cyan']))
-    expect(t).not.toContain('bg-carbon-cyan')
+  it('draws every button as a pill, like the website (BRAND.md Website style)', () => {
+    for (const variant of ['primary', 'secondary'] as const) {
+      expect(tokens(buttonClasses({ variant }))).toContain('rounded-pill')
+    }
   })
 })
 

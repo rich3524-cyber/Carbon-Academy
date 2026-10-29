@@ -1,7 +1,17 @@
 import type { Metadata } from 'next'
+import { Saira } from 'next/font/google'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import './globals.css'
+
+// The website's font (BRAND.md Website style). next/font downloads it at build time and serves
+// it from our own domain, so browsers never contact Google and the CSP stays font-src 'self'.
+const saira = Saira({
+  subsets: ['latin'],
+  weight: ['400', '600', '800'],
+  display: 'swap',
+  variable: '--font-saira',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
@@ -15,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en-AU">
+    <html lang="en-AU" className={saira.variable}>
       <body className="flex min-h-screen flex-col">
         <a
           href="#main"

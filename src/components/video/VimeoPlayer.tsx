@@ -105,12 +105,12 @@ export function VimeoPlayer({ vimeoId, title, lessonId, lessonSlug, categorySlug
       <button
         type="button"
         onClick={() => setStarted(true)}
-        className="group relative flex aspect-video w-full items-center justify-center bg-carbon-black text-white"
+        className="group relative flex aspect-video w-full items-center justify-center rounded-card bg-carbon-black text-white"
       >
         <span className="sr-only">Play video: {title}</span>
         <span
           aria-hidden="true"
-          className="flex h-16 w-16 items-center justify-center bg-carbon-cyan text-carbon-black transition-colors group-hover:bg-white"
+          className="flex h-16 w-16 items-center justify-center rounded-pill bg-carbon-cyan text-carbon-black transition-colors group-hover:bg-white"
         >
           <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor">
             <path d="M8 5v14l11-7z" />
@@ -121,7 +121,7 @@ export function VimeoPlayer({ vimeoId, title, lessonId, lessonSlug, categorySlug
   }
 
   return (
-    <div className="relative aspect-video w-full bg-carbon-black">
+    <div className="relative aspect-video w-full overflow-hidden rounded-card bg-carbon-black">
       <iframe
         ref={frame}
         src={vimeoEmbedUrl(vimeoId)}

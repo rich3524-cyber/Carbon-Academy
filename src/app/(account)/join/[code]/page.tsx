@@ -48,7 +48,7 @@ export default async function JoinStorePage({ params }: PageProps<'/join/[code]'
         {user ? (
           <>
             <ChangeStoreForm code={parsed.data} storeName={store.storeName} />
-            <div className="mt-10 border-t-2 border-dust pt-6">
+            <div className="mt-10 border-t border-concrete pt-6">
               <SignOutButton />
             </div>
           </>

@@ -56,10 +56,10 @@ Online product training portal for Carbon Offroad customers and retail partners.
 
 - Colours: Carbon Black `#111111`, White, Carbon Cyan `#00A4C7` (accent, about 10%), Gunmetal `#303030`, Concrete `#909090`, Dust `#E6E6E6`.
 - Cyan is never used for text on white.
-- Buttons: square or angled corners. **No pills, no rounded corners.** Min height 44 px. Primary = cyan fill with black uppercase text.
+- **Online, the Academy matches carbonoffroad.com.au** (BRAND.md "Website style", approved 29 Oct 2026): pill buttons, rounded cards and fields using only the named radius tokens, a cyan header and footer with black text, and a `#EEEEEE` page. Min height 44 px. Primary = cyan fill with black bold uppercase text.
 - One slash motif per screen, at the badge angle.
 - Logo from master SVG files only, never recreated. Top left in the header.
-- Eurostile with Arial fallback. Do not commit any Eurostile font files until licensed web fonts are supplied.
+- Saira (self-hosted with `next/font`) with an Arial fallback, matching the website. Email, print and certificates keep the guideline fonts. Never commit Eurostile font files.
 
 ## Accessibility and privacy
 
