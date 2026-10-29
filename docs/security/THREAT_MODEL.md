@@ -84,6 +84,14 @@ Trust boundaries are the browser to Netlify, Netlify to Supabase, and Supabase t
 | T-34 | `quiz_attempts` | Reading or writing another learner's attempts, or forging a pass | Information disclosure, Tampering, EoP | RLS on `current_learner()`; column grant without `answers`; no insert, update or delete grants; attempts only written by `submit_quiz` | Mitigated |
 | T-35 | `get_quiz` | Harvesting questions without watching, or for unpublished lessons | Information disclosure | Rows only when the lesson is published, the quiz is valid and it is unlocked for the caller | Mitigated |
 | T-36 | Lesson page cache | Quiz content or results cached on the shared static page | Information disclosure | The page holds no quiz data; questions and results travel only in POST Server Action responses (control 14) | Mitigated |
+| T-37 | Issuing | Concurrent passes issue two certificates, or two learners get one number | Tampering | Per-learner advisory lock; locked per-year counter row; unique number; DB concurrency tests | Mitigated |
+| T-38 | Issuing | A learner issues their own certificate, or one without passing | EoP | Issue function not executable by any API role; only called inside `submit_quiz` and `join_store` | Mitigated |
+| T-39 | `/verify` | Enumerating sequential numbers to list staff names and stores | Information disclosure | 4-character random check code required (about a million combinations per number); same "not found" answer for a wrong code; 30 a minute per IP; `noindex` | Mitigated |
+| T-40 | `/verify` | Page shows more than PRD 5.4 allows | Information disclosure | Function returns six named fields; first name and last initial only; test asserts the keys | Mitigated |
+| T-41 | `/certificates/[number]` | Downloading another learner's PDF | Information disclosure | Session required; RLS own rows; 404 for others; `private, no-store` | Mitigated |
+| T-42 | `/api/certified-stores` | Scraping, or other sites embedding the feed | DoS | Cached 1 h; 60 a minute per IP; store fields only; no CORS | Mitigated |
+| T-43 | Certificate email | Personal details or the certificate itself sent by email | Information disclosure | First name and a link only; nothing sent until D5 has a vetted provider | Mitigated |
+| T-44 | Revoked certificate | Auto-reissued on the next pass | Tampering | Issuing stops when the learner's latest certificate is revoked (Phase 6 decides reinstatement) | Mitigated |
 
 ## Supabase security advisor review
 
