@@ -18,7 +18,7 @@ A threat closes when its control is implemented **and** verified.
 |---|---|---|---|---|---|
 | T-01 | `/go` → `log_qr_scan` | SQL injection through the slug or UTM values | Tampering, EoP | Zod slug validation; UTM allowlist and character set; parameterised plpgsql; `search_path = ''` | Verified (DB tests, 29 Oct 2026) |
 | T-02 | `/go` | Scan flooding to inflate counts or grow the table | DoS | Cap of 60 scans per link per minute in the function (mutation-checked); optional Netlify Traffic Rule; 24-month retention (data register) | Cap verified; Netlify rule pending |
-| T-03 | `/go` | Open redirect to another site | Spoofing | Redirect built only from database slugs on the same origin | Verified (curl, 29 Oct 2026) |
+| T-03 | `/go` | Open redirect to another site | Spoofing | Redirect is a relative path built only from database slugs, so it can never leave the site the visitor is on. **29 Oct 2026:** the first production version sent absolute URLs on the Netlify deploy address (pinned deploy); fixed and covered by `src/app/go/[slug]/route.test.ts` | Verified (unit tests, curl) |
 | T-04 | `qr_links`, `qr_scans` | Reading or editing QR data with the publishable key | Information disclosure, Tampering | RLS on; all privileges revoked from anon and authenticated | Verified (DB tests) |
 | T-05 | `/go` | Personal data in URLs reaching our database (for example `?email=`) | Information disclosure | Only five known UTM keys pass, and only three are stored; no IP stored | Verified (unit tests and curl) |
 | T-06 | Lesson page | A malicious `vimeo_id` or warranty URL rendered into `src` or `href` | Tampering (XSS) | `isVimeoId` and `safeHttpsUrl` with a host allowlist; CSP `frame-src` allows Vimeo only | Verified (unit tests) |
