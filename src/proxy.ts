@@ -45,7 +45,19 @@ export async function proxy(request: NextRequest) {
     },
   )
   // Refreshes an expired access token. Don't add code between client creation and this call.
-  await supabase.auth.getClaims()
+  const { data } = await supabase.auth.getClaims()
+
+  // Convenience only: send signed-out visitors to /sign-in with a real HTTP redirect, which
+  // also works without JavaScript. The dashboard's requireUser() is still the access check.
+  if (!data?.claims && !isAction && request.nextUrl.pathname.startsWith('/dashboard')) {
+    const signIn = request.nextUrl.clone()
+    signIn.pathname = '/sign-in'
+    signIn.search = ''
+    const redirect = NextResponse.redirect(signIn)
+    for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie)
+    redirect.headers.set('Cache-Control', 'private, no-store')
+    return redirect
+  }
 
   if (!isAction) response.headers.set('Content-Security-Policy-Report-Only', csp)
   response.headers.set('Cache-Control', 'private, no-store')
