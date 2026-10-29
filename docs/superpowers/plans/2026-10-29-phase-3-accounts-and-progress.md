@@ -659,11 +659,11 @@ describe('profile trigger', () => {
   })
 
   it('refuses to set a password on an existing account (review H1, T-27)', async () => {
-    const { error } = await alice!.client.auth.updateUser({ password: 'a-long-test-passphrase-2026' })
+    // Built at run time: a literal password-like string here trips the gitleaks CI scan.
+    const attempt = `${crypto.randomUUID()}${crypto.randomUUID()}`
+    const { error } = await alice!.client.auth.updateUser({ password: attempt })
     expect(error).not.toBeNull()
-    const { error: adminError } = await admin.auth.admin.updateUserById(alice!.id, {
-      password: 'a-long-test-passphrase-2026',
-    })
+    const { error: adminError } = await admin.auth.admin.updateUserById(alice!.id, { password: attempt })
     expect(adminError).not.toBeNull()
   })
 
