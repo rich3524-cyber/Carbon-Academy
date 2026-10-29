@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { requestSignInLink } from '@/lib/auth/actions'
 import { initialFormState } from '@/lib/forms/state'
 
-export function SignInForm() {
+/** `next` is already checked against the allowlist by the page (T-13), and again by the action. */
+export function SignInForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(requestSignInLink, initialFormState)
 
   if (state.status === 'sent') {
@@ -47,6 +48,7 @@ export function SignInForm() {
         required
         error={state.fieldErrors?.email}
       />
+      <input type="hidden" name="next" value={next} />
       <Honeypot />
       <div>
         <Button type="submit" disabled={pending}>

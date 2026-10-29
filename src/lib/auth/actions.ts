@@ -68,10 +68,11 @@ async function sendSignInLink(_prev: FormState, formData: FormData): Promise<For
     logSecurityEvent('honeypot_tripped', { requestId: await requestId() })
     return SENT
   }
+  const landing = safeNextPath(parsed.data.next, siteUrl())
   const supabase = await createSessionClient()
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
-    options: { shouldCreateUser: false, emailRedirectTo: `${siteUrl()}/dashboard` },
+    options: { shouldCreateUser: false, emailRedirectTo: `${siteUrl()}${landing}` },
   })
   if (error) {
     logSecurityEvent('sign_in_link_failed', { code: error.code, requestId: await requestId() })

@@ -8,9 +8,21 @@ type SecurityEvent =
   | 'store_code_not_found'
   | 'progress_save_failed'
   | 'store_change_failed'
+  | 'quiz_submitted'
+  | 'quiz_rate_limited'
+  | 'quiz_submit_failed'
 
-/** IDs and error codes only. Never emails, names, form data, tokens or URLs (control 15, T-22). */
-type Fields = { userId?: string; code?: string; requestId?: string }
+/**
+ * IDs, error codes and pass or fail only. Never emails, names, form data, tokens, URLs or quiz
+ * answers (control 15, T-22).
+ */
+type Fields = {
+  userId?: string
+  code?: string
+  requestId?: string
+  lessonId?: string
+  outcome?: 'passed' | 'failed'
+}
 
 export function logSecurityEvent(event: SecurityEvent, fields: Fields = {}) {
   console.info(JSON.stringify({ kind: 'security', event, ...fields, at: new Date().toISOString() }))

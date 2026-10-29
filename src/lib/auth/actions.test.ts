@@ -41,6 +41,26 @@ describe('requestSignInLink (T-09)', () => {
     })
   })
 
+  it('brings the learner back to the lesson they came from (decision 15)', async () => {
+    await requestSignInLink(
+      idle,
+      form({ email: 'pat@example.com', website: '', next: '/lessons/winches/scout-pro-10k-v3' }),
+    )
+    expect(signInWithOtp.mock.calls[0]![0].options.emailRedirectTo).toBe(
+      'https://academy.example.com/lessons/winches/scout-pro-10k-v3',
+    )
+  })
+
+  it.each(['https://evil.example/x', '//evil.example/x', '/admin', '/lessons/../dashboard?x=1'])(
+    'falls back to the dashboard for next=%s (T-13)',
+    async (next) => {
+      await requestSignInLink(idle, form({ email: 'pat@example.com', website: '', next }))
+      expect(signInWithOtp.mock.calls[0]![0].options.emailRedirectTo).toBe(
+        'https://academy.example.com/dashboard',
+      )
+    },
+  )
+
   it('gives the same answer whether or not the account exists', async () => {
     const known = await requestSignInLink(idle, form({ email: 'a@example.com', website: '' }))
     signInWithOtp.mockResolvedValue({ error: { status: 422, code: 'otp_disabled', message: 'x' } })

@@ -24,7 +24,12 @@ export const StoreCode = z
 /** Hidden field that people never fill in, but bots do (control 19). */
 const Honeypot = z.string().max(200).default('')
 
-export const SignInInput = z.object({ email: Email, website: Honeypot })
+export const SignInInput = z.object({
+  email: Email,
+  website: Honeypot,
+  // Where the link should land. Checked against the allowlist by safeNextPath before use (T-13).
+  next: z.string().max(500).optional(),
+})
 
 export const JoinInput = z.object({
   firstName: PersonName,

@@ -48,6 +48,16 @@ describe('form inputs', () => {
     })
   })
 
+  it('accepts an optional next path, up to 500 characters (decision 15)', () => {
+    expect(
+      SignInInput.parse({ email: 'pat@example.com', website: '', next: '/lessons' }).next,
+    ).toBe('/lessons')
+    expect(
+      SignInInput.safeParse({ email: 'pat@example.com', website: '', next: '/'.repeat(501) })
+        .success,
+    ).toBe(false)
+  })
+
   it('reads the join form and turns the checkbox into a boolean', () => {
     const parsed = JoinInput.parse({
       firstName: 'Pat',

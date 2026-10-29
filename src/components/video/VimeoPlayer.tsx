@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type PlayerSignal, dueMilestones } from '@/lib/analytics/milestones'
 import { type EventProps, type VideoEvent, track } from '@/lib/analytics/track'
 import { getResumePoint, saveProgress } from '@/lib/progress/actions'
+import { PROGRESS_SAVED, type ProgressSavedDetail } from '@/lib/progress/events'
 import { type PlayerEvent, nextSave, resumeFrom } from '@/lib/progress/throttle'
 
 /** Carbon Cyan without the hash, as Vimeo expects (BRAND.md video player). */
@@ -65,7 +66,13 @@ export function VimeoPlayer({ vimeoId, title, lessonId, lessonSlug, categorySlug
       if (!next.save) return
       const percent = event === 'ended' ? 100 : Math.round(data.percent * 100)
       void saveProgress({ lessonId, percent, seconds: Math.floor(data.seconds) }).then((result) => {
-        if (!result.saved) progress.tracking = false
+        if (!result.saved) {
+          progress.tracking = false
+          return
+        }
+        // Lets the quiz panel unlock without a reload; the server still decides (T-20).
+        const detail: ProgressSavedDetail = { lessonId, percent }
+        window.dispatchEvent(new CustomEvent(PROGRESS_SAVED, { detail }))
       })
     }
 
@@ -127,7 +134,9 @@ export function VimeoPlayer({ vimeoId, title, lessonId, lessonSlug, categorySlug
         src={vimeoEmbedUrl(vimeoId)}
         title={`Video: ${title}`}
         className="absolute inset-0 h-full w-full"
-        allow="autoplay; fullscreen; picture-in-picture"
+        // Vimeo's player needs encrypted-media: without it Chrome blocks it and it errors before
+        // playing, so no timeupdate events arrive and no progress is saved (Phase 4 preview).
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         referrerPolicy="strict-origin-when-cross-origin"
       />
     </div>

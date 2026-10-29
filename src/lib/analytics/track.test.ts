@@ -16,6 +16,14 @@ describe('track', () => {
     ])
   })
 
+  it('pushes quiz events with slugs only', () => {
+    ;(window as DataLayerWindow).dataLayer = []
+    track('quiz_pass', { lesson_slug: 'soft-shackles', category_slug: 'recovery-gear' })
+    expect((window as DataLayerWindow).dataLayer).toEqual([
+      { event: 'quiz_pass', lesson_slug: 'soft-shackles', category_slug: 'recovery-gear' },
+    ])
+  })
+
   it('does nothing when no analytics tool is loaded', () => {
     expect(() =>
       track('video_complete', { lesson_slug: 'scout-pro-10k-v3', category_slug: 'winches' }),

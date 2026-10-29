@@ -23,7 +23,27 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "categories": {
+            "answer_options": {
+                  Row: {
+                    "created_at": string,"id": string,"is_correct": boolean,"question_id": string,"text": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"is_correct"?: boolean,"question_id": string,"text": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"is_correct"?: boolean,"question_id"?: string,"text"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "answer_options_question_id_fkey"
+      columns: ["question_id"]
+isOneToOne: false
+      referencedRelation: "questions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"categories": {
                   Row: {
                     "created_at": string,"description": string | null,"id": string,"name": string,"slug": string,"sort_order": number
                   }
@@ -39,14 +59,14 @@ export type Database = {
                   ]
                 },"lesson_progress": {
                   Row: {
-                    "completed_at": string | null,"last_position_seconds": number,"lesson_id": string,"max_percent": number,"updated_at": string,"user_id": string
+                    "completed_at": string | null,"first_progress_at": string,"last_position_seconds": number,"lesson_id": string,"max_percent": number,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "completed_at"?: string | null,"last_position_seconds"?: number,"lesson_id": string,"max_percent"?: number,"updated_at"?: string,"user_id": string
+                    "completed_at"?: string | null,"first_progress_at"?: string,"last_position_seconds"?: number,"lesson_id": string,"max_percent"?: number,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "completed_at"?: string | null,"last_position_seconds"?: number,"lesson_id"?: string,"max_percent"?: number,"updated_at"?: string,"user_id"?: string
+                    "completed_at"?: string | null,"first_progress_at"?: string,"last_position_seconds"?: number,"lesson_id"?: string,"max_percent"?: number,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -157,6 +177,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"questions": {
+                  Row: {
+                    "created_at": string,"id": string,"lesson_id": string,"prompt": string,"sort_order": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"lesson_id": string,"prompt": string,"sort_order"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"lesson_id"?: string,"prompt"?: string,"sort_order"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "questions_lesson_id_fkey"
+      columns: ["lesson_id"]
+isOneToOne: false
+      referencedRelation: "lessons"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"quiz_attempts": {
+                  Row: {
+                    "answers": NonNullable<Json>,"created_at": string,"id": string,"lesson_id": string,"passed": boolean,"score": number,"total": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answers": NonNullable<Json>,"created_at"?: string,"id"?: string,"lesson_id": string,"passed": boolean,"score": number,"total": number,"user_id": string
+                  }
+                  Update: {
+                    "answers"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"lesson_id"?: string,"passed"?: boolean,"score"?: number,"total"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "quiz_attempts_lesson_id_fkey"
+      columns: ["lesson_id"]
+isOneToOne: false
+      referencedRelation: "lessons"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "quiz_attempts_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"settings": {
                   Row: {
                     "description": string,"key": string,"updated_at": string,"value": NonNullable<Json>
@@ -200,9 +266,19 @@ isOneToOne: false
             "current_learner":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"get_quiz":
+{ Args: { "p_lesson_id": string }; Returns: {
+              "option_id": string,"option_text": string,"prompt": string,"question_id": string
+            }[]
+                           },
 "join_store":
 { Args: { "p_code": string }; Returns: {
               "store_name": string
+            }[]
+                           },
+"lessons_with_quiz":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "lesson_id": string
             }[]
                            },
 "log_qr_scan":
@@ -218,8 +294,27 @@ isOneToOne: false
 "normalise_store_code":
 { Args: { "p_code": string }; Returns: string
                            },
+"quiz_ready":
+{ Args: { "p_lesson_id": string }; Returns: boolean
+                           },
+"quiz_status":
+{ Args: { "p_lesson_id": string }; Returns: {
+              "attempts_left": number,"state": string
+            }[]
+                           },
+"quiz_unlocked":
+{ Args: { "p_lesson_id": string,"p_user": string }; Returns: boolean
+                           },
 "save_lesson_progress":
 { Args: { "p_lesson_id": string,"p_percent": number,"p_position_seconds": number }; Returns: undefined
+                           },
+"setting_int":
+{ Args: { "p_default": number,"p_key": string,"p_max": number,"p_min": number }; Returns: number
+                           },
+"submit_quiz":
+{ Args: { "p_answers": Json,"p_lesson_id": string }; Returns: {
+              "passed": boolean,"score": number,"total": number
+            }[]
                            }
           }
           Enums: {
