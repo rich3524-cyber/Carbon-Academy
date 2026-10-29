@@ -122,7 +122,7 @@ Each decision shows the recommended choice first.
 **15. Back to the lesson after signing in. Recommended: yes, for lesson pages only.**
 - Today every sign-in link lands on `/dashboard`.
 - The sign-in page would accept `?next=/lessons/<category>/<lesson>`, check it against the existing allowlist (`safeNextPath`, T-13), and put it in the magic link.
-- Supabase only honours redirect URLs on its allow list. Locally `localhost:3000/**` already covers it; you add `<site>/lessons/**` on staging and production in the Auth settings, as for Phase 3.
+- Supabase only honours redirect URLs on its allow list. Locally `localhost:3000/**` already covers it. **Correction, 29 Oct 2026:** staging (`https://*--carbonoffroadacademy.netlify.app/**`) and production (`https://carbonoffroadacademy.netlify.app/**`) already allow every path from Phase 3, so no settings change is needed.
 
 **16. Remote changes (staging, then production).**
 - These use the same flow as Phase 3, and I ask before each one:
