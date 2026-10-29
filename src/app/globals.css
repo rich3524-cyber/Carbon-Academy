@@ -14,12 +14,19 @@
   --color-dust: #e6e6e6;
   --color-logo-black: #000000;
   --color-error-red: #c62828;
+  /* Website page background (BRAND.md Website style) */
+  --color-page: #eeeeee;
 
+  /* Website radii only (BRAND.md Website style). Defaults removed; the brand guard enforces it */
   --radius-*: initial;
+  --radius-pill: 9999px;
+  --radius-card: 25px;
+  --radius-field: 8px;
+  --radius-tile: 10px;
 
-  /* Arial only until licensed Eurostile web fonts are installed (BRAND.md Typography) */
+  /* Saira, self-hosted by next/font in the root layout (--font-saira), Arial as the fallback */
   --font-*: initial;
-  --font-sans: Arial, sans-serif;
+  --font-sans: var(--font-saira), Arial, sans-serif;
 
   /* Web type scale (p.29). Mobile size first, -lg for md and up */
   --text-*: initial;
@@ -47,8 +54,9 @@
 }
 
 @layer base {
+  /* Website page grey; cards and panels are white on it (BRAND.md Website style) */
   html {
-    background-color: var(--color-white);
+    background-color: var(--color-page);
     color: var(--color-carbon-black);
   }
 
@@ -58,15 +66,19 @@
     line-height: 1.5;
   }
 
-  /* H1 and H2 are uppercase (p.29). Typed in sentence case so screen readers read words, not letters */
+  /*
+   * Website headings: Saira 800, uppercase, slightly tight (BRAND.md Website style). Typed in
+   * sentence case so screen readers read words, not letters.
+   */
   h1,
   h2 {
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
+    letter-spacing: -0.02em;
   }
 
   h3 {
-    font-weight: 700;
+    font-weight: 600;
   }
 
   /* Cyan on white fails 3:1 for focus indicators, so focus is black on light and white on dark */
