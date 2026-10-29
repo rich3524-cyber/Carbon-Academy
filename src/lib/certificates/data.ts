@@ -1,7 +1,10 @@
 import 'server-only'
 import { cacheLife } from 'next/cache'
+import { requireUser } from '@/lib/auth/session'
 import { createPublicClient } from '@/lib/supabase/public'
+import { createSessionClient } from '@/lib/supabase/server'
 import { VerifyCode } from './format'
+import { type CertificationView, certificationView } from './view'
 
 export type Verification = {
   firstName: string
@@ -49,4 +52,51 @@ export async function getCertifiedStores(): Promise<CertifiedStore[]> {
     state: s.state,
     country: s.country,
   }))
+}
+
+/**
+ * The signed-in learner's latest certificate and their store's status, for the dashboard.
+ * Own rows only (RLS) and never cached (control 14).
+ */
+export async function getMyCertification(): Promise<CertificationView> {
+  await requireUser()
+  const supabase = await createSessionClient()
+  const [latest, store, setting] = await Promise.all([
+    supabase
+      .from('certificates')
+      .select('certificate_number, check_code, issued_at, expires_at, revoked_at')
+      .order('issued_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase.rpc('my_store_status').maybeSingle(),
+    supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'certificate_renewal_window_days')
+      .maybeSingle(),
+  ])
+  if (latest.error || store.error) throw new Error('Could not load certification')
+  const c = latest.data
+  const s = store.data
+  const windowDays = typeof setting.data?.value === 'number' ? setting.data.value : 30
+  return certificationView({
+    certificate: c
+      ? {
+          number: c.certificate_number,
+          checkCode: c.check_code,
+          issuedAt: c.issued_at,
+          expiresAt: c.expires_at,
+          revokedAt: c.revoked_at,
+        }
+      : null,
+    store: s
+      ? {
+          name: s.store_name,
+          certifiedStaff: s.active_certified_staff,
+          threshold: s.threshold,
+          isCertified: s.is_certified,
+        }
+      : null,
+    renewalWindowDays: windowDays,
+  })
 }
