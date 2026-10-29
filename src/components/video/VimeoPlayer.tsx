@@ -134,7 +134,9 @@ export function VimeoPlayer({ vimeoId, title, lessonId, lessonSlug, categorySlug
         src={vimeoEmbedUrl(vimeoId)}
         title={`Video: ${title}`}
         className="absolute inset-0 h-full w-full"
-        allow="autoplay; fullscreen; picture-in-picture"
+        // Vimeo's player needs encrypted-media: without it Chrome blocks it and it errors before
+        // playing, so no timeupdate events arrive and no progress is saved (Phase 4 preview).
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         referrerPolicy="strict-origin-when-cross-origin"
       />
     </div>

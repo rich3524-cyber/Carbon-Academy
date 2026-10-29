@@ -128,4 +128,13 @@ describe('VimeoPlayer', () => {
     expect(frame.getAttribute('src')).toBe(vimeoEmbedUrl('76979871'))
     expect(frame.getAttribute('referrerpolicy')).toBe('strict-origin-when-cross-origin')
   })
+
+  it('lets the player use encrypted media, or Vimeo fails before playing (no progress events)', () => {
+    render(<VimeoPlayer {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Play video: Scout Pro 10K V3' }))
+    const allow = screen.getByTitle('Video: Scout Pro 10K V3').getAttribute('allow') ?? ''
+    expect(allow.split(';').map((s) => s.trim())).toEqual(
+      expect.arrayContaining(['autoplay', 'fullscreen', 'picture-in-picture', 'encrypted-media']),
+    )
+  })
 })
