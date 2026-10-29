@@ -4,6 +4,7 @@ export const QUIZ_COPY = {
   signedOut: 'Want to test your knowledge? Sign in to take the quiz.',
   sessionEnded: 'Your session has ended. Sign in again to take the quiz.',
   locked: 'Watch the video to unlock the quiz.',
+  nearlyThere: 'Nearly there. Keep this page open and the quiz will unlock shortly.',
   ready: 'A few quick questions on this lesson. Pick one answer for each.',
   passedBefore: "You've passed this quiz. Take it again any time.",
   limited: "That's 10 goes in the last hour. Have another look at the video and try again later.",

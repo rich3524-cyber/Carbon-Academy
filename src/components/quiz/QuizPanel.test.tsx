@@ -95,6 +95,67 @@ describe('QuizPanel', () => {
     expect(getQuizStatus).toHaveBeenCalledTimes(2)
   })
 
+  describe('after a 90% save the server still says locked (watch-time rule, decision 1)', () => {
+    const saved90 = async () => {
+      await act(async () => {
+        window.dispatchEvent(
+          new CustomEvent(PROGRESS_SAVED, { detail: { lessonId: LESSON, percent: 100 } }),
+        )
+      })
+    }
+
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    it('says the quiz is nearly there and re-checks every 15 seconds until it unlocks', async () => {
+      getQuizStatus.mockResolvedValue({ state: 'locked', attemptsLeft: 0 })
+      await renderPanel()
+      await saved90()
+      expect(
+        screen.getByText('Nearly there. Keep this page open and the quiz will unlock shortly.'),
+      ).toBeTruthy()
+      expect(getQuizStatus).toHaveBeenCalledTimes(2)
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000)
+      })
+      expect(getQuizStatus).toHaveBeenCalledTimes(3)
+
+      getQuizStatus.mockResolvedValue({ state: 'ready', attemptsLeft: 10 })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000)
+      })
+      expect(screen.getByRole('button', { name: 'Take the quiz' })).toBeTruthy()
+
+      // Unlocked: no more checks.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60_000)
+      })
+      expect(getQuizStatus).toHaveBeenCalledTimes(4)
+    })
+
+    it('stops re-checking after 5 minutes', async () => {
+      getQuizStatus.mockResolvedValue({ state: 'locked', attemptsLeft: 0 })
+      await renderPanel()
+      await saved90()
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10 * 60_000)
+      })
+      // 1 on load + 1 after the save + 20 re-checks (5 minutes at 15 s).
+      expect(getQuizStatus).toHaveBeenCalledTimes(22)
+    })
+
+    it('keeps the plain locked message until a 90% save arrives', async () => {
+      getQuizStatus.mockResolvedValue({ state: 'locked', attemptsLeft: 0 })
+      await renderPanel()
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60_000)
+      })
+      expect(screen.getByText('Watch the video to unlock the quiz.')).toBeTruthy()
+      expect(getQuizStatus).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('shows one question at a time and submits every answer', async () => {
     submitQuiz.mockResolvedValue({ ok: true, score: 2, total: 2, passed: true })
     await renderPanel()

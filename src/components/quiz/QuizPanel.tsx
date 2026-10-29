@@ -26,6 +26,9 @@ type View =
 
 type Props = { lessonId: string; lessonPath: string; analytics: EventProps }
 
+const RECHECK_MS = 15_000
+const RECHECKS = 20 // 5 minutes
+
 export function QuizPanel({ lessonId, lessonPath, analytics }: Props) {
   const [view, setView] = useState<View>({ kind: 'loading' })
   const focusTarget = useRef<HTMLElement | null>(null)
@@ -37,17 +40,33 @@ export function QuizPanel({ lessonId, lessonPath, analytics }: Props) {
 
   useEffect(refresh, [refresh])
 
-  // Unlock without a reload when the player saves 90% (decision 1 still applies on the server).
+  // Unlock without a reload when the player saves 90%. The server can still say locked when the
+  // video was skipped through faster than the watch-time rule allows (decision 1), so keep
+  // asking every 15 seconds for up to 5 minutes. The server decides every time.
   const locked = view.kind === 'status' && view.status.state === 'locked'
+  const [waiting, setWaiting] = useState(false)
   useEffect(() => {
     if (!locked) return
     const onSaved = (event: Event) => {
       const detail = (event as CustomEvent<ProgressSavedDetail>).detail
-      if (detail?.lessonId === lessonId && detail.percent >= 90) refresh()
+      if (detail?.lessonId !== lessonId || detail.percent < 90) return
+      setWaiting(true)
+      refresh()
     }
     window.addEventListener(PROGRESS_SAVED, onSaved)
     return () => window.removeEventListener(PROGRESS_SAVED, onSaved)
   }, [locked, lessonId, refresh])
+
+  useEffect(() => {
+    if (!locked || !waiting) return
+    let checks = 0
+    const timer = setInterval(() => {
+      checks += 1
+      refresh()
+      if (checks >= RECHECKS) clearInterval(timer)
+    }, RECHECK_MS)
+    return () => clearInterval(timer)
+  }, [locked, waiting, refresh])
 
   const stepKey = view.kind === 'taking' ? view.step : view.kind
   useEffect(() => {
@@ -91,7 +110,12 @@ export function QuizPanel({ lessonId, lessonPath, analytics }: Props) {
       </h2>
       <div aria-live="polite" className="mt-4">
         {view.kind === 'status' && (
-          <StatusBody status={view.status} signInHref={signInHref} onStart={begin} />
+          <StatusBody
+            status={view.status}
+            waiting={waiting}
+            signInHref={signInHref}
+            onStart={begin}
+          />
         )}
         {view.kind === 'taking' && current && (
           <form
@@ -158,10 +182,12 @@ export function QuizPanel({ lessonId, lessonPath, analytics }: Props) {
 
 function StatusBody({
   status,
+  waiting,
   signInHref,
   onStart,
 }: {
   status: QuizStatus
+  waiting: boolean
   signInHref: string
   onStart: () => void
 }) {
@@ -177,7 +203,7 @@ function StatusBody({
       </>
     )
   }
-  if (status.state === 'locked') return <p>{QUIZ_COPY.locked}</p>
+  if (status.state === 'locked') return <p>{waiting ? QUIZ_COPY.nearlyThere : QUIZ_COPY.locked}</p>
   return (
     <>
       {status.state === 'passed' && (
