@@ -149,21 +149,28 @@ Every phase follows these. Each rule cites its source in the framework.
 | 21 AI features | Not applicable | — |
 | 22 Availability and disclosure | Netlify CDN; rate limiting; external uptime and certificate monitoring alerting a named person; `/.well-known/security.txt` | 1 (security.txt), 7 |
 
-## 5. Data classification and retention (draft for approval, section 5)
+## 5. Data classification and retention (section 5)
 
-| Data | Class | System | Retention (proposed) | Deletion |
+**Approved by Rich, Sales and Marketing Manager, in chat on 29 October 2026** (Phase 3 plan, decision 8).
+
+| Data | Class | System | Retention | Deletion |
 |---|---|---|---|---|
 | Lessons, categories, settings, certified-store feed | Public | Supabase | Life of the Academy | Admin unpublish or delete |
 | Certificate verification page (first name, last initial, store, dates) | Public, by design | Supabase | Certificate expiry + 12 months | Daily job |
 | Quiz questions and correct answers | Internal (integrity-critical; answers never sent to the browser) | Supabase | Life of the lesson | Admin |
-| Learner profile (name, email, store, role, consent flags) | Confidential | Supabase Auth and `profiles` | While active + 24 months of inactivity | Scheduled deletion, plus on request |
+| Learner profile (name, email, store, role, consent flags, `last_active_at`) | Confidential | Supabase Auth and `profiles` (Sydney, ap-southeast-2) | While active + 24 months of inactivity, measured from `last_active_at` | Scheduled deletion, plus on request (manual by Rich until the job exists) |
+| Magic-link tokens | Confidential | Supabase Auth | 10 minutes, single use | Expire automatically |
+| Unconfirmed sign-ups (names, email, consent flag in `auth.users` metadata; no profile yet) | Confidential | Supabase Auth | 24 hours | Scheduled purge job, built and tested before sign-ups are switched on (EX-01) |
 | Lesson progress, quiz attempts, certificates | Confidential | Supabase | As for the profile | Cascades with the profile |
 | QR scans (slug, UTM values, timestamp; no IP stored) | Internal | Supabase | 24 months | Scheduled job |
 | Store codes | Confidential (they grant store membership) | Supabase | Until regenerated | Admin regenerates |
 | Auth and admin audit logs | Confidential | Supabase | 12 months | Scheduled job |
+| Netlify function and edge logs (security events: event name, user ID, error code, request ID; never emails or tokens) | Internal | Netlify | Netlify Pro default (not configurable) | Expire automatically |
 | Secrets and keys | Highly Sensitive | Netlify env vars, password manager | Rotated per the key inventory | Revoke at the provider |
 
-All retention periods are proposals. Rich approves them before Phase 3. Section 5 says Tier B/C projects don't launch with an undefined retention period for Confidential data.
+Section 5 says Tier B/C projects don't launch with an undefined retention period for Confidential data. Every row now has one.
+
+**Commitment:** the scheduled deletion jobs (24 months of inactivity, QR scans, audit logs, certificate pages) are built and tested before the Phase 7 release gate. Until then, deletion on request is manual, and each deletion is recorded with its date and user ID, never the email.
 
 ## 6. Key inventory (control 10, Tier C)
 
@@ -218,3 +225,15 @@ Before calling any phase done:
 3. Flag anything the framework requires that isn't done yet, with its owner and target phase. Exceptions need a justification, compensating controls, an expiry date and Rich's written approval (section 1).
 
 To read the framework as text on this machine, unzip `word/document.xml` from the .docx with PowerShell's `System.IO.Compression.ZipFile` and strip the tags. There's no Word or Python here.
+
+## 10. Log inventory (control 15, ASVS 16.1.1)
+
+| Layer | What's logged | Format | Where it goes | Who can read it | Retention |
+|---|---|---|---|---|---|
+| App security events (`logSecurityEvent`, from Phase 3) | Sign-in success and failure, honeypot trips, unknown store codes, failed progress saves and store moves. Fields: event, user ID, error code, Netlify request ID, UTC time. **Never** emails, names, form data or tokens | One JSON object per line (`kind: "security"`) | Netlify function logs | Netlify team members (named accounts) | Netlify Pro default |
+| Netlify edge | Requests, including rate-limit `429`s on `/sign-in`, `/join` and `/auth/*`. Request paths include `/join/CODE` store codes (accepted, T-22); magic-link tokens never appear, because they sit in the URL fragment | Netlify format | Netlify logs | Netlify team members | Netlify Pro default |
+| Supabase Auth | Every sign-in, sign-up, token refresh and sign-out (Supabase audit log) | Supabase format | Supabase logs and `auth.audit_log_entries` | Supabase organisation members | 12 months (section 5); scheduled clean-up before Phase 7 |
+| Supabase Postgres | Errors and slow queries (platform default) | Postgres format | Supabase logs | Supabase organisation members | Supabase plan default |
+| Supabase API gateway | Every request to the Auth and REST APIs, including paths and query strings. Magic-link tokens never appear, because they sit in the URL fragment. `/join/CODE` store codes appear in Netlify request paths (accepted, T-22) | Supabase format | Supabase logs | Supabase organisation members | Supabase plan default |
+
+Not yet in place (ASVS 16.4.3, Phase 7): shipping logs to a separate system, plus alerting a named person.

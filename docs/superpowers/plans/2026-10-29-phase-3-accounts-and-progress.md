@@ -45,11 +45,38 @@ Section 5 also applies:
 
 ## Decisions and flags (confirm before Task 1)
 
-Each one has a recommendation. Reply with numbers to change; anything not mentioned stands as recommended.
+**Approved by Rich in chat, 29 October 2026: all 16 as recommended.** Decision 9's reviewer isn't named yet, so Task 1 uses the fallback (a fresh reviewer agent, recorded as not independent).
+
+**Changes from the ASVS 5.0 Level 2 review in Task 1** (`docs/security/ASVS.md`), 29 October 2026:
+- **Decision 2 tightened:** magic links now expire after **10 minutes**, not 15. ASVS 6.5.5 caps out-of-band links at 10.
+- **New exception EX-02 (needs Rich's written approval):** email-only, single-factor sign-in for learners, with links that work in any browser (ASVS 6.3.3, 6.6.2), and no session list (7.5.2). Justification and compensating controls are in `EVIDENCE.md`. The branch-protection exception, if needed, becomes EX-03.
+- **Added `current_learner()`** to Task 3. Every policy and write function checks that the session still exists in `auth.sessions` and that the profile is active, so sign-out and deactivation take effect at the database at once (ASVS 7.4.1, 7.4.2). It comes with two new tests and mutation check 5.
+- **Added "Sign out on all devices"** (Tasks 9, 12, 14), plus a sign-out button on the signed-in join pages (ASVS 7.4.3, 7.4.4, 7.5.2 in part).
+- **`confirmSignIn` ends any existing session before signing in** (ASVS 7.2.4), and logs successful sign-ins (ASVS 16.3.1).
+- **The Auth API's password pathway is hardened**, because Supabase can't switch passwords off separately (ASVS 6.1.3, 6.3.4). Settings: 15-character minimum, leaked-password protection, and confirm email kept on (Tasks 4, 17).
+- **Log inventory** added to `docs/SECURITY.md` section 10 (ASVS 16.1.1).
+- **Collection notice:** both Supabase projects are in Sydney (checked). It also says the website host processes data in the US while decision S9 is open (APP 8).
+
+**Changes from the reviewer agent's findings in Task 1** (full list and dispositions in `THREAT_MODEL.md`, "Phase 3 review"), 29 October 2026:
+- **Decision 5 raised: store codes have 8 random characters, not 6.** `lookup_store` and `join_store` can be called straight through the database API, which skips the Netlify limits (M3).
+- **No passwords on existing accounts.** A `refuse_password_change` trigger, plus `secure_password_change`. Otherwise anyone holding a session could add a lasting password (H1).
+- **Profiles are created when the email is confirmed, not at sign-up.** Nobody can create a profile, or record marketing consent, for someone else's address. Confirmations are now on locally too (M2).
+- **Email changes:** confirmed from both addresses, with a notice email and the profile kept in step (H1).
+- **Code length and verification limit:** `otp_length = 10`, and `token_verifications` 10 per 5 minutes (M1).
+- **Magic-link token moved into the URL fragment**, so it never reaches server logs (L6). `next` is now URL-encoded (L4).
+- **`current_learner()` checks the session's end time** (L2).
+- **Sign-out always clears the cookies** (L3).
+- **Cookie lifetime 30 days**, not 400 (L8).
+- **1.5-second response floor** on sign-in and join (L5).
+- **`base-uri 'none'`** in both CSPs (L1).
+- **The proxy also runs for progress actions on lesson pages** (L7).
+- **"Signed in as <email>"** on the dashboard (an EX-02 compensating control).
+- **Admin recovery runbook** in `PERMISSIONS.md` (M4).
+- **Nine more DB tests.** A second seeded partner, plus a grant check that tells the two refusal layers apart.
 
 1. **New dependency `@supabase/ssr` 0.12.7** (released 8 Sep 2026, so over two weeks old). It's maintained by Supabase, and its only dependency is `cookie`. It handles session cookies and token refresh. Writing that ourselves would be custom auth, which control 02 says to avoid.
 
-2. **Magic links expire after 15 minutes and work once** (control 02). The Supabase default is 60 minutes. Staff who open the email later just request a new link.
+2. **Magic links expire after 10 minutes and work once** (control 02). The Supabase default is 60 minutes. Staff who open the email later just request a new link.
 
 3. **Session lifetime** (control 09). Store staff often share devices, so keep sessions shortish:
    - **Recommended:** sign out after **7 days of inactivity**, and always after **30 days**.
@@ -68,8 +95,8 @@ Each one has a recommendation. Reply with numbers to change; anything not mentio
 
    Netlify Pro allows 5 code-based rules; this uses 3. A limited visitor sees a 429 for up to a minute.
 
-5. **Store codes get 6 random characters, not 4:** `BCF-ROB-7K2Q9M` rather than `BCF-ROB-7K2Q` (PRD 5.2).
-   - The prefix is guessable, so 4 characters leaves about a million combinations per store. 6 characters gives about a billion.
+5. **Store codes get 8 random characters, not 4:** `BCF-ROB-7K2Q9MXH` rather than `BCF-ROB-7K2Q` (PRD 5.2). *(Approved as 6; raised to 8 after the Task 1 review, see below.)*
+   - The prefix is guessable, so 4 characters leaves about a million combinations per store. 8 characters gives about 10^12, which stays out of reach even through direct database API calls that skip the Netlify rate limits.
    - The random part uses Crockford base32 (no I, L, O or U), and codes are typed case-insensitively.
    - This changes PRD 5.2's example, so I'll update the PRD.
 
@@ -89,7 +116,7 @@ Each one has a recommendation. Reply with numbers to change; anything not mentio
 
    | Data | Class | Retention (proposed) |
    |---|---|---|
-   | Magic-link tokens | Confidential | 15 minutes, single use (Supabase) |
+   | Magic-link tokens | Confidential | 10 minutes, single use (Supabase) |
    | Netlify function and edge logs | Internal | Netlify Pro default, not configurable |
    | Profile `last_active_at` | Confidential | As for the profile |
 
@@ -124,7 +151,7 @@ Each one has a recommendation. Reply with numbers to change; anything not mentio
 16. **Test Vimeo video still needed** (from Phase 2). Without a real video, "progress persists across devices" can be proven only by the DB and action tests, not in the player. One short clip on the Carbon Vimeo account, with `localhost` and the Netlify domains on its embed allowlist, closes this.
 
 **Still open from earlier phases** (they don't block Phase 3, but the framework expects them):
-- Branch protection on `main` (control 13, record EX-02 if approvals stay at 0)
+- Branch protection on `main` (control 13, record EX-03 if approvals stay at 0; EX-02 is now the magic-link exception)
 - The Dependabot PRs (#2 React 19.3.1, then #4 ESLint 10)
 - The `security@` mailbox
 
@@ -134,14 +161,16 @@ Each one has a recommendation. Reply with numbers to change; anything not mentio
 
 ```
 Join (new learner)
-  /join/BCF-ROB-7K2Q9M ──GET──► lookup_store(code) ─► "You're joining BCF Robina"
+  /join/BCF-ROB-7K2Q9MXH ──GET──► lookup_store(code) ─► "You're joining BCF Robina"
       │ POST (Server Action: Zod, honeypot, edge rate limit)
       ▼
   supabase.auth.signInWithOtp({ shouldCreateUser: true, data: { names, code, consent } })
-      │ email (Mailpit locally)                    ▲ trigger handle_new_user():
-      ▼                                            │ profile row, store from code, role 'learner'
-  /auth/confirm?token_hash=…&next=/join/CODE ── GET shows "Continue" button
-      │ POST (Server Action) verifyOtp ─► session cookies (HttpOnly, __Host-, SameSite=Lax)
+      │ email (Mailpit locally)           auth.users row (unconfirmed; names checked, no profile)
+      ▼
+  /auth/confirm?next=/join/CODE#token_hash=…  ── GET shows "Continue" (token stays in the fragment)
+      │ POST (Server Action) verifyOtp ─► email confirmed ─► trigger create_profile():
+      │                                   profile row, store from code, role 'learner'
+      │                                   ─► session cookies (HttpOnly, __Host-, SameSite=Lax)
       ▼
   /join/CODE (signed in, already a member) ─► /dashboard
 
@@ -281,8 +310,8 @@ The app doesn't use the secret key in Phase 3. Only the local DB tests and test-
 ```markdown
 | T-09 | `/sign-in`, `/join` | Account enumeration from different messages or timing | Information disclosure | One neutral message for every outcome; `shouldCreateUser: false` on sign-in; errors logged without the email | Planned |
 | T-10 | `/sign-in`, `/join`, Auth API | Email bombing a victim, or mass fake sign-ups | DoS, Spoofing | Netlify edge rate limits per IP; honeypot; Supabase per-email resend interval and hourly email cap; sign-ups off while EX-01 is open. Direct Auth API calls skip the honeypot: accepted, with Supabase's own limits as the backstop and Turnstile as the next step | Planned |
-| T-11 | `/join/[code]`, `lookup_store` | Guessing store codes to discover stores or join one | Information disclosure, EoP | 6 random Crockford characters (about 10^9 per prefix); edge rate limit; lookup returns only name, partner, suburb and state; no list endpoint | Planned |
-| T-12 | Magic link | Token used by someone else (forwarded email, scanner pre-open, leaked URL) | Spoofing | Single use; 15-minute expiry; confirm button (POST), so scanners don't spend it; `Referrer-Policy: no-referrer` and `no-store` on `/auth/confirm`; no third-party resources on that page | Planned |
+| T-11 | `/join/[code]`, `lookup_store` | Guessing store codes to discover stores or join one | Information disclosure, EoP | 8 random Crockford characters (about 10^12 per prefix), which also covers direct PostgREST calls to `lookup_store` and `join_store` that skip the Netlify edge (review M3); edge rate limit for the pages; lookup returns only name, partner, suburb and state; no list endpoint; learners can't read `store_code` | Planned |
+| T-12 | Magic link | Token used by someone else (forwarded email, scanner pre-open, leaked URL) | Spoofing | Single use; 10-minute expiry; confirm button (POST), so scanners don't spend it; `Referrer-Policy: no-referrer` and `no-store` on `/auth/confirm`; no third-party resources on that page | Planned |
 | T-13 | `/auth/confirm` `next` value | Open redirect after sign-in | Spoofing | `safeNextPath()` allowlist: only same-site relative paths to known routes | Planned |
 | T-14 | Session cookies | Theft by script, fixation, survival after sign-out | Spoofing, EoP | No browser Supabase client, so `HttpOnly`; `__Host-` prefix and `Secure` on HTTPS; `SameSite=Lax`; new session on every sign-in; sign-out revokes the refresh token; 7-day idle and 30-day absolute expiry | Planned |
 | T-15 | Profiles, progress | One learner reading or changing another's data (IDOR/BOLA) | Information disclosure, Tampering | RLS on `(select auth.uid())`; direct writes revoked; writes only through definer functions, which take no user ID | Planned |
@@ -397,7 +426,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
-  const csp = `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; object-src 'none'; base-uri 'self'`
+  const csp = `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'; object-src 'none'; base-uri 'none'`
   const headers = new Headers(request.headers)
   headers.set('content-security-policy-report-only', csp)
   const response = NextResponse.next({ request: { headers } })
@@ -519,6 +548,14 @@ export async function signInAs(email: string): Promise<SupabaseClient> {
 export async function deleteTestUser(user: TestUser | undefined) {
   if (user) await admin.auth.admin.deleteUser(user.id)
 }
+
+/** A client that replays a raw access token, as an attacker with a copied token would. */
+export function clientWithToken(accessToken: string): SupabaseClient {
+  return createClient(url, publishable, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+  })
+}
 ```
 
 - [ ] **Step 2: Write the failing DB tests.** One test per † cell in `PERMISSIONS.md`:
@@ -527,14 +564,14 @@ export async function deleteTestUser(user: TestUser | undefined) {
 // tests/db/accounts.test.ts
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { admin, publicClient } from './clients'
-import { createTestUser, deleteTestUser, type TestUser } from './users'
+import { clientWithToken, createTestUser, deleteTestUser, signInAs, type TestUser } from './users'
 
 // Security framework control 04: the Phase 3 permissions matrix (docs/security/PERMISSIONS.md),
 // proven against a real database. Fixture codes come from supabase/seed.sql.
 
-const ROBINA = 'TST-ROB-7K2Q9M'
-const NERANG = 'TST-NER-3H8W4D'
-const INACTIVE = 'TST-OLD-9X9X9X'
+const ROBINA = 'TST-ROB-7K2Q9MXH'
+const NERANG = 'TST-NER-3H8W4DPA'
+const INACTIVE = 'TST-OLD-9X9X9X9X'
 
 let alice: TestUser | undefined
 let bob: TestUser | undefined
@@ -606,16 +643,74 @@ describe('profile trigger', () => {
     expect(data!.first_name).toHaveLength(50)
     await deleteTestUser(user)
   })
+
+  it('creates no profile (and records no consent) until the email is confirmed (T-26)', async () => {
+    const { data: created } = await admin.auth.admin.createUser({
+      email: `unconfirmed-${crypto.randomUUID().slice(0, 8)}@example.com`,
+      email_confirm: false,
+      user_metadata: { first_name: 'Eve', last_name: 'Spoof', marketing_opt_in: true },
+    })
+    const id = created.user!.id
+    expect((await admin.from('profiles').select('id').eq('id', id)).data).toEqual([])
+    await admin.auth.admin.updateUserById(id, { email_confirm: true })
+    const { data } = await admin.from('profiles').select('marketing_opt_in_at').eq('id', id).single()
+    expect(data!.marketing_opt_in_at).not.toBeNull() // stamped at confirmation, not at request
+    await admin.auth.admin.deleteUser(id)
+  })
+
+  it('refuses to set a password on an existing account (review H1, T-27)', async () => {
+    const { error } = await alice!.client.auth.updateUser({ password: 'a-long-test-passphrase-2026' })
+    expect(error).not.toBeNull()
+    const { error: adminError } = await admin.auth.admin.updateUserById(alice!.id, {
+      password: 'a-long-test-passphrase-2026',
+    })
+    expect(adminError).not.toBeNull()
+  })
+
+  it('keeps profiles.email in step with a confirmed email change', async () => {
+    const user = await createTestUser('grace')
+    const next = `grace-new-${crypto.randomUUID().slice(0, 8)}@example.com`
+    await admin.auth.admin.updateUserById(user.id, { email: next, email_confirm: true })
+    const { data } = await admin.from('profiles').select('email').eq('id', user.id).single()
+    expect(data!.email).toBe(next)
+    await deleteTestUser(user)
+  })
 })
 
 describe('anonymous access', () => {
+  // 42501 = permission denied. Asserting the code (not just "no data") means a query that fails
+  // for some other reason can't pass as "refused".
   it.each(['partners', 'stores', 'profiles', 'lesson_progress'])('cannot read %s', async (table) => {
-    const { data } = await publicClient.from(table).select('*')
-    expect(data ?? []).toEqual([])
+    const { error } = await publicClient.from(table).select('*')
+    expect(error?.code).toBe('42501')
+  })
+
+  it.each([
+    ['partners', 'id'],
+    ['stores', 'id'],
+    ['profiles', 'id'],
+    ['lesson_progress', 'user_id'],
+  ])('cannot update %s', async (table, key) => {
+    const { error } = await publicClient.from(table).update({}).not(key, 'is', null)
+    expect(error?.code).toBe('42501')
+  })
+
+  // 42501 = permission denied, so the test fails if a write is refused for some other reason
+  // (a bad column, say) while the privilege is still there.
+  it.each([
+    ['partners', 'id'],
+    ['stores', 'id'],
+    ['profiles', 'id'],
+    ['lesson_progress', 'user_id'],
+  ])('cannot write or delete %s', async (table, key) => {
+    const insert = await publicClient.from(table).insert({})
+    expect(insert.error?.code).toBe('42501')
+    const del = await publicClient.from(table).delete().not(key, 'is', null)
+    expect(del.error?.code).toBe('42501')
   })
 
   it('looks up an active store by code, case-insensitively, without the code or id', async () => {
-    const { data, error } = await publicClient.rpc('lookup_store', { p_code: ' tst-rob-7k2q9m ' })
+    const { data, error } = await publicClient.rpc('lookup_store', { p_code: ' tst-rob-7k2q9mxh ' })
     expect(error).toBeNull()
     expect(data).toEqual([
       { store_name: 'Test Store Robina', partner_name: 'Test Partner', suburb: 'Robina', state: 'QLD' },
@@ -623,7 +718,7 @@ describe('anonymous access', () => {
   })
 
   it('finds nothing for an inactive, unknown or malformed code', async () => {
-    for (const p_code of [INACTIVE, 'TST-ROB-000000', "x' or 1=1 --", 'a'.repeat(500)]) {
+    for (const p_code of [INACTIVE, 'TST-ROB-00000000', "x' or 1=1 --", 'a'.repeat(500)]) {
       const { data } = await publicClient.rpc('lookup_store', { p_code })
       expect(data).toEqual([])
     }
@@ -638,6 +733,19 @@ describe('anonymous access', () => {
     expect(save.error).not.toBeNull()
     const join = await publicClient.rpc('join_store', { p_code: ROBINA })
     expect(join.error).not.toBeNull()
+  })
+
+  // Tells the two layers apart: the missing grant fails with "permission denied for function",
+  // the in-function check with "not signed in". This proves the grant layer on its own.
+  it.each([
+    ['join_store', { p_code: ROBINA }],
+    ['save_lesson_progress', { p_lesson_id: '00000000-0000-4000-8000-000000000000', p_percent: 1, p_position_seconds: 1 }],
+    ['current_learner', {}],
+    ['normalise_store_code', { p_code: 'x' }],
+  ])('has no EXECUTE grant on %s', async (fn, args) => {
+    const { error } = await publicClient.rpc(fn, args)
+    expect(error?.code).toBe('42501')
+    expect(error?.message).toMatch(/permission denied for function/)
   })
 })
 
@@ -654,7 +762,8 @@ describe('learner access', () => {
     expect(error).not.toBeNull()
   })
 
-  it('reads their own partner only', async () => {
+  it('reads their own partner only, never the other partner', async () => {
+    // seed.sql has two partners, so this proves cross-partner isolation, not just "one row".
     const { data } = await alice!.client.from('partners').select('name')
     expect(data).toEqual([{ name: 'Test Partner' }])
     const { data: none } = await bob!.client.from('partners').select('name')
@@ -664,6 +773,8 @@ describe('learner access', () => {
   it('cannot update, insert or delete profiles directly', async () => {
     const update = await alice!.client.from('profiles').update({ role: 'admin' }).eq('id', alice!.id)
     expect(update.error).not.toBeNull()
+    const other = await alice!.client.from('profiles').update({ first_name: 'Hacked' }).eq('id', bob!.id)
+    expect(other.error).not.toBeNull()
     const insert = await alice!.client
       .from('profiles')
       .insert({ id: bob!.id, first_name: 'x', last_name: 'y', email: 'x@example.com' })
@@ -673,8 +784,17 @@ describe('learner access', () => {
   })
 
   it('cannot write stores or partners', async () => {
-    const { error } = await alice!.client.from('stores').update({ name: 'Hacked' }).neq('name', '')
-    expect(error).not.toBeNull()
+    const attempts = [
+      alice!.client.from('stores').update({ name: 'Hacked' }).neq('name', ''),
+      alice!.client.from('stores').delete().neq('name', ''),
+      alice!.client.from('stores').insert({ name: 'Fake store', store_code: 'TST-FAK-AAAAAAAA' }),
+      alice!.client.from('partners').insert({ name: 'Fake partner' }),
+      alice!.client.from('partners').update({ name: 'Hacked' }).neq('name', ''),
+      alice!.client.from('partners').delete().neq('name', ''),
+    ]
+    for (const { error } of await Promise.all(attempts)) expect(error).not.toBeNull()
+    const { count } = await admin.from('stores').select('id', { count: 'exact', head: true }).eq('name', 'Hacked')
+    expect(count).toBe(0)
   })
 
   it('saves progress through the function and keeps the maximum percent', async () => {
@@ -712,11 +832,15 @@ describe('learner access', () => {
     expect(data).toEqual([]) // ...but Bob can't see them
   })
 
-  it('cannot write progress rows directly', async () => {
-    const { error } = await bob!.client
+  it('cannot write or delete progress rows directly', async () => {
+    const insert = await bob!.client
       .from('lesson_progress')
       .insert({ user_id: bob!.id, lesson_id: lessonId, max_percent: 100 })
-    expect(error).not.toBeNull()
+    expect(insert.error).not.toBeNull()
+    const update = await alice!.client.from('lesson_progress').update({ max_percent: 100 }).eq('user_id', alice!.id)
+    expect(update.error).not.toBeNull()
+    const del = await alice!.client.from('lesson_progress').delete().eq('user_id', alice!.id)
+    expect(del.error).not.toBeNull()
   })
 
   it('refuses progress on an unpublished lesson', async () => {
@@ -755,6 +879,42 @@ describe('learner access', () => {
     expect(progress).toEqual([])
   })
 })
+
+describe('session end (ASVS 7.4.1, 7.4.2)', () => {
+  it('stops a copied access token working at the database as soon as the learner signs out', async () => {
+    const user = await createTestUser('erin')
+    const { data } = await user.client.auth.getSession()
+    const stale = clientWithToken(data.session!.access_token)
+    expect((await stale.from('profiles').select('id')).data).toEqual([{ id: user.id }]) // works now...
+    await user.client.auth.signOut({ scope: 'local' })
+    expect((await stale.from('profiles').select('id')).data).toEqual([]) // ...not after sign-out
+    const save = await stale.rpc('save_lesson_progress', { p_lesson_id: lessonId, p_percent: 5, p_position_seconds: 1 })
+    expect(save.error).not.toBeNull()
+    await deleteTestUser(user)
+  })
+
+  it('cuts off a deactivated learner straight away', async () => {
+    const user = await createTestUser('frank')
+    await admin.from('profiles').update({ active: false }).eq('id', user.id)
+    expect((await user.client.from('profiles').select('id')).data).toEqual([])
+    const join = await user.client.rpc('join_store', { p_code: ROBINA })
+    expect(join.error).not.toBeNull()
+    const save = await user.client.rpc('save_lesson_progress', { p_lesson_id: lessonId, p_percent: 5, p_position_seconds: 1 })
+    expect(save.error).not.toBeNull()
+    await deleteTestUser(user)
+  })
+
+  it('"sign out on all devices" ends the other sessions at the database too', async () => {
+    const user = await createTestUser('heidi')
+    const phone = await signInAs(user.email) // a second session for the same learner
+    const { data } = await phone.auth.getSession()
+    const phoneToken = clientWithToken(data.session!.access_token)
+    expect((await phoneToken.from('profiles').select('id')).data).toEqual([{ id: user.id }])
+    await user.client.auth.signOut({ scope: 'global' })
+    expect((await phoneToken.from('profiles').select('id')).data).toEqual([])
+    await deleteTestUser(user)
+  })
+})
 ```
 
 - [ ] **Step 3: Run the tests to confirm they fail**
@@ -789,9 +949,9 @@ create table public.stores (
   suburb text check (length(suburb) <= 80),
   state text check (length(state) <= 40),
   country text not null default 'AU' check (country in ('AU', 'NZ', 'US')),
-  -- Prefix, location, then 6 random Crockford base32 characters (decision 5). Stored upper case.
+  -- Prefix, location, then 8 random Crockford base32 characters (decision 5). Stored upper case.
   store_code text not null unique
-    check (store_code ~ '^[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{6}$'),
+    check (store_code ~ '^[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{8}$'),
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -840,17 +1000,41 @@ grant select on public.profiles, public.lesson_progress, public.partners to auth
 -- Column grant: learners never see store codes, even their own store's (T-11).
 grant select (id, partner_id, name, suburb, state, country) on public.stores to authenticated;
 
+-- The signed-in learner's ID, or null if their session has ended (signed out, expired, revoked)
+-- or their profile is deactivated. A JWT stays valid until it expires, so checking auth.sessions
+-- makes sign-out and deactivation take effect at the database straight away (ASVS 7.4.1, 7.4.2).
+-- Every policy and write function below uses this instead of auth.uid().
+create function public.current_learner()
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id
+  from public.profiles p
+  join auth.sessions s on s.user_id = p.id
+  where p.id = auth.uid()
+    and s.id = nullif(auth.jwt() ->> 'session_id', '')::uuid
+    -- Time-boxed sessions carry an end time (review finding L2). The inactivity timeout is
+    -- enforced by Supabase Auth at refresh, so it can lag by up to one access-token lifetime.
+    and (s.not_after is null or s.not_after > now())
+    and p.active
+$$;
+
 create policy "Learners read their own profile"
   on public.profiles for select to authenticated
-  using (id = (select auth.uid()));
+  using (id = (select public.current_learner()));
 
 create policy "Learners read their own progress"
   on public.lesson_progress for select to authenticated
-  using (user_id = (select auth.uid()));
+  using (user_id = (select public.current_learner()));
 
 create policy "Learners read their own store"
   on public.stores for select to authenticated
-  using (id = (select p.store_id from public.profiles p where p.id = (select auth.uid())));
+  using (
+    id = (select p.store_id from public.profiles p where p.id = (select public.current_learner()))
+  );
 
 create policy "Learners read their own store's partner"
   on public.partners for select to authenticated
@@ -859,7 +1043,7 @@ create policy "Learners read their own store's partner"
       select s.partner_id
       from public.stores s
       join public.profiles p on p.store_id = s.id
-      where p.id = (select auth.uid())
+      where p.id = (select public.current_learner())
     )
   );
 
@@ -874,10 +1058,57 @@ as $$
               else upper(btrim(p_code)) end
 $$;
 
--- Profile creation on sign-up (Supabase Auth inserts into auth.users).
--- user_metadata comes from the client and is untrusted (T-17): read known keys only, trim and
--- cap them, never read a role, and fail closed if a name is missing.
-create function public.handle_new_user()
+-- Guards on auth.users. user_metadata comes from the client and is untrusted (T-17).
+
+-- 1. Before insert: refuse a sign-up without names (fail closed at the Auth API).
+create function public.check_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if btrim(coalesce(new.raw_user_meta_data ->> 'first_name', '')) = ''
+     or btrim(coalesce(new.raw_user_meta_data ->> 'last_name', '')) = '' then
+    raise exception 'first_name and last_name are required';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger before_auth_user_created
+  before insert on auth.users
+  for each row execute function public.check_new_user();
+
+-- 2. No password can be set or changed on an existing account. The app is magic-link only, but
+-- Supabase's Auth API (updateUser) would let anyone holding a session, such as someone with a
+-- forwarded link, add a lasting password that "sign out on all devices" can't remove
+-- (review finding H1, ASVS 6.1.3, T-27). Insert is deliberately not blocked: Supabase may store
+-- a random temporary password when it creates a magic-link user. A password chosen at API
+-- sign-up still needs the mailbox (confirm email is on) and meets the hosted password rules.
+create function public.refuse_password_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if coalesce(new.encrypted_password, '') <> ''
+     and new.encrypted_password is distinct from old.encrypted_password then
+    raise exception 'passwords are not used in the Academy';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger refuse_password_change
+  before update of encrypted_password on auth.users
+  for each row execute function public.refuse_password_change();
+
+-- 3. The profile is created only once the email is confirmed (the first magic-link sign-in),
+-- so nobody can create a profile or record marketing consent for someone else's address
+-- (review finding M2, T-26). Reads known keys only, trims and caps them, never reads a role.
+create function public.create_profile()
 returns trigger
 language plpgsql
 security definer
@@ -885,30 +1116,57 @@ set search_path = ''
 as $$
 declare
   v_meta jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
-  v_first text := left(btrim(coalesce(v_meta ->> 'first_name', '')), 50);
-  v_last text := left(btrim(coalesce(v_meta ->> 'last_name', '')), 50);
   v_opt_in boolean := coalesce((v_meta ->> 'marketing_opt_in')::boolean, false);
   v_store uuid;
 begin
-  if v_first = '' or v_last = '' then
-    raise exception 'first_name and last_name are required';
-  end if;
-
   select s.id into v_store
   from public.stores s
   where s.store_code = public.normalise_store_code(v_meta ->> 'store_code') and s.active;
 
   insert into public.profiles
     (id, first_name, last_name, email, store_id, marketing_opt_in, marketing_opt_in_at)
-  values
-    (new.id, v_first, v_last, new.email, v_store, v_opt_in, case when v_opt_in then now() end);
+  values (
+    new.id,
+    left(btrim(v_meta ->> 'first_name'), 50),
+    left(btrim(v_meta ->> 'last_name'), 50),
+    new.email,
+    v_store,
+    v_opt_in,
+    case when v_opt_in then now() end
+  )
+  on conflict (id) do nothing;
   return new;
 end;
 $$;
 
-create trigger on_auth_user_created
+create trigger on_auth_user_confirmed_insert
   after insert on auth.users
-  for each row execute function public.handle_new_user();
+  for each row when (new.email_confirmed_at is not null)
+  execute function public.create_profile();
+
+create trigger on_auth_user_confirmed_update
+  after update of email_confirmed_at on auth.users
+  for each row when (old.email_confirmed_at is null and new.email_confirmed_at is not null)
+  execute function public.create_profile();
+
+-- 4. Keep profiles.email in step after a confirmed email change (double confirmation is on,
+-- and Supabase emails both addresses; review finding H1).
+create function public.sync_profile_email()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.profiles set email = new.email where id = new.id;
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_email_changed
+  after update of email on auth.users
+  for each row when (old.email is distinct from new.email)
+  execute function public.sync_profile_email();
 
 -- Join page lookup (T-11). Returns only what the page shows. No IDs, no codes, no list.
 create function public.lookup_store(p_code text)
@@ -932,7 +1190,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_user uuid := auth.uid();
+  v_user uuid := public.current_learner();
   v_store uuid;
   v_name text;
 begin
@@ -967,7 +1225,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_user uuid := auth.uid();
+  v_user uuid := public.current_learner();
   v_percent smallint := least(greatest(coalesce(round(p_percent), 0), 0), 100);
   v_duration integer;
   v_position integer;
@@ -1004,7 +1262,14 @@ $$;
 
 -- Postgres grants EXECUTE to PUBLIC by default, and Supabase's default privileges also grant it
 -- to anon and authenticated, so revoke from all three before granting back.
-revoke all on function public.handle_new_user() from public, anon, authenticated;
+revoke all on function public.check_new_user() from public, anon, authenticated;
+revoke all on function public.refuse_password_change() from public, anon, authenticated;
+revoke all on function public.create_profile() from public, anon, authenticated;
+revoke all on function public.sync_profile_email() from public, anon, authenticated;
+-- Only used inside the definer functions above; not an API (review finding L9).
+revoke all on function public.normalise_store_code(text) from public, anon, authenticated;
+revoke all on function public.current_learner() from public, anon, authenticated;
+grant execute on function public.current_learner() to authenticated;
 revoke all on function public.lookup_store(text) from public, anon, authenticated;
 revoke all on function public.join_store(text) from public, anon, authenticated;
 revoke all on function public.save_lesson_progress(uuid, numeric, integer)
@@ -1014,19 +1279,24 @@ grant execute on function public.join_store(text) to authenticated;
 grant execute on function public.save_lesson_progress(uuid, numeric, integer) to authenticated;
 ```
 
-Anon calls to `join_store` and `save_lesson_progress` are refused twice: first by the missing grant, then by the `auth.uid()` check. Two layers on purpose. The anon test passes with either one alone, so it doesn't count as mutation evidence for the grant.
+Anon calls to `join_store` and `save_lesson_progress` are refused twice: first by the missing grant, then by the `current_learner()` check. Two layers on purpose.
+
+`current_learner()` reads `auth.sessions`. If the hosted projects' JWTs don't carry a `session_id` claim, every learner would get nothing. The sign-out test below catches that locally, and Task 17 re-runs the check on staging. The anon test passes with either one alone, so it doesn't count as mutation evidence for the grant.
 
 - [ ] **Step 5: Seed fictional partners and stores.** Append to `supabase/seed.sql`:
 
 ```sql
 -- Phase 3 fixtures: fictional partner and stores (TST prefix). Never real stores (EX-01).
 insert into public.partners (id, name, type) values
-  ('00000000-0000-4000-8000-000000000101', 'Test Partner', 'retail_group');
+  ('00000000-0000-4000-8000-000000000101', 'Test Partner', 'retail_group'),
+  -- A second partner, so tests prove cross-partner isolation (review finding).
+  ('00000000-0000-4000-8000-000000000102', 'Other Partner', 'independent');
 
 insert into public.stores (partner_id, name, suburb, state, store_code, active) values
-  ('00000000-0000-4000-8000-000000000101', 'Test Store Robina', 'Robina', 'QLD', 'TST-ROB-7K2Q9M', true),
-  ('00000000-0000-4000-8000-000000000101', 'Test Store Nerang', 'Nerang', 'QLD', 'TST-NER-3H8W4D', true),
-  ('00000000-0000-4000-8000-000000000101', 'Test Store Closed', 'Southport', 'QLD', 'TST-OLD-9X9X9X', false);
+  ('00000000-0000-4000-8000-000000000101', 'Test Store Robina', 'Robina', 'QLD', 'TST-ROB-7K2Q9MXH', true),
+  ('00000000-0000-4000-8000-000000000101', 'Test Store Nerang', 'Nerang', 'QLD', 'TST-NER-3H8W4DPA', true),
+  ('00000000-0000-4000-8000-000000000101', 'Test Store Closed', 'Southport', 'QLD', 'TST-OLD-9X9X9X9X', false),
+  ('00000000-0000-4000-8000-000000000102', 'Other Store Burleigh', 'Burleigh Heads', 'QLD', 'TST-BUR-5T6Y7Z8W', true);
 ```
 
 - [ ] **Step 6: Apply, run the tests, regenerate types**
@@ -1044,6 +1314,7 @@ Expected: every test in `accounts.test.ts`, `rls.test.ts` and `qr.test.ts` passe
   2. In `save_lesson_progress`, drop `and l.published`. Expected: "refuses progress on an unpublished lesson" fails.
   3. Replace `greatest(lp.max_percent, excluded.max_percent)` with `excluded.max_percent`. Expected: "keeps the maximum percent" fails.
   4. Change the stores column grant to `grant select on public.stores`. Expected: "without its code" fails.
+  5. In `current_learner()`, drop the `join auth.sessions` line and its `s.id = …` condition. Expected: "stops a copied access token working…" fails.
 
   After each, run `npm run db:reset && npm run test:db`.
 
@@ -1072,18 +1343,36 @@ site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/**"]
 # Local only. Hosted projects keep sign-ups OFF while EX-01 is open.
 enable_signup = true
+# The app never uses passwords, but Supabase's email provider still accepts them through
+# the Auth API. Make that pathway as strong as ASVS asks (6.1.3, 6.2.1, 6.3.4).
+minimum_password_length = 15
 
 [auth.rate_limit]
 # Emails per hour, local stack only (Mailpit). Hosted value is set in Task 17.
 email_sent = 30
+# Link and code checks per 5 minutes per IP. These calls can go straight to Supabase and
+# skip the Netlify edge limits, so keep this low (review finding M1, T-28).
+token_verifications = 10
 
 [auth.email]
 enable_signup = true
-enable_confirmations = false
+# On, as on the hosted projects: the profile is created only when the email is confirmed (T-26).
+enable_confirmations = true
+# Email changes need confirming from both addresses (ASVS 7.5.1).
+double_confirm_changes = true
+# Belt and braces with the refuse_password_change trigger (review finding H1).
+secure_password_change = true
 # A new link can be requested once a minute per address (T-10).
 max_frequency = "60s"
-# Magic links expire after 15 minutes (decision 2, control 02).
-otp_expiry = 900
+# Magic links expire after 10 minutes (decision 2, ASVS 6.5.5).
+otp_expiry = 600
+# The magic-link token is derived from this code, so its length sets the guessing difficulty.
+# 10 is the maximum Supabase allows (review finding M1, ASVS 6.5.4, 6.6.3).
+otp_length = 10
+
+# Tell the learner when their email address changes (control 02).
+[auth.email.notification.email_changed]
+enabled = true
 
 [auth.email.template.magic_link]
 subject = "Your Carbon Offroad Academy sign-in link"
@@ -1103,6 +1392,8 @@ inactivity_timeout = "168h"
 
 Edit the existing keys in place; don't add duplicate sections. The subject is 40 characters, under the 45 in BRAND.md Email.
 
+If the CLI rejects `otp_length = 10` or the `email_changed` notification section, record the maximum it accepts and tell Rich. Don't silently drop the setting. EX-02's compensating controls depend on it.
+
 - [ ] **Step 2: Write the email template.** Arial only (p.28: never mix families in one email), 600 px single column, centred white-on-black header (p.45, approved), one CTA:
 
 ```html
@@ -1117,7 +1408,7 @@ Edit the existing keys in place; don't add duplicate sections. The subject is 40
   <body style="margin:0;padding:0;background:#E6E6E6;">
     <!-- Preview text (BRAND.md Email: always written) -->
     <div style="display:none;max-height:0;overflow:hidden;">
-      Your sign-in link. It works once and expires in 15 minutes.
+      Your sign-in link. It works once and expires in 10 minutes.
     </div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E6E6E6;">
       <tr>
@@ -1134,12 +1425,12 @@ Edit the existing keys in place; don't add duplicate sections. The subject is 40
               <td style="padding:32px 32px 8px;font-family:Arial,Helvetica,sans-serif;color:#111111;">
                 <h1 style="margin:0 0 16px;font-size:26px;line-height:1.2;font-weight:bold;">Sign in to the Academy</h1>
                 <p style="margin:0 0 24px;font-size:16px;line-height:1.5;">
-                  Tap the button to sign in to the Carbon Offroad Academy. The link works once and expires in 15 minutes.
+                  Tap the button to sign in to the Carbon Offroad Academy. The link works once and expires in 10 minutes.
                 </p>
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="background:#00A4C7;">
-                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next={{ .RedirectTo }}"
+                      <a href="{{ .SiteURL }}/auth/confirm?next={{ .RedirectTo | urlquery }}#token_hash={{ .TokenHash }}"
                          style="display:inline-block;padding:14px 28px;min-height:16px;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;text-transform:uppercase;color:#111111;text-decoration:none;">
                         Sign in
                       </a>
@@ -1173,6 +1464,11 @@ Flags for the summary:
 - **`[PHONE TBC]`**.
 - **The address is hard-coded.** BRAND.md says it comes from `settings`, but Supabase templates can't read our database. Update it here and in both hosted projects when the move to Ormeau happens (February 2027). This deviation needs Rich's OK.
 - **The logo loads from `{{ .SiteURL }}`.** Locally that's `localhost`, so most mail clients won't show it (the alt text shows instead). That's expected in Mailpit.
+
+How the link is built:
+- **The token hash goes after `#`**, so it never reaches a server log (review finding L6).
+- **`next` is URL-encoded** with Go's `urlquery` (control 19: encode template variables for their context, review finding L4). `safeNextPath()` then reduces it to an allowlisted path.
+- **Check in Mailpit** that the link reads `…/auth/confirm?next=http%3A%2F%2Flocalhost%3A3000%2Fjoin%2F…#token_hash=…`. If Supabase's template engine rejects `urlquery`, stop and tell Rich rather than removing the encoding.
 
 - [ ] **Step 3: Restart the stack and check the template is picked up**
 
@@ -1225,7 +1521,7 @@ describe('siteUrl', () => {
 ```ts
 // src/lib/supabase/cookies.test.ts
 import { describe, expect, it } from 'vitest'
-import { authCookieOptions } from './cookies'
+import { authCookieOptions, isAuthCookie } from './cookies'
 
 // Security framework control 09: Secure, HttpOnly, SameSite and the __Host- prefix.
 describe('authCookieOptions', () => {
@@ -1236,7 +1532,16 @@ describe('authCookieOptions', () => {
       secure: true,
       sameSite: 'lax',
       path: '/',
+      maxAge: 60 * 60 * 24 * 30,
     })
+  })
+
+  it('recognises every session cookie name, and nothing else', () => {
+    for (const name of ['__Host-sb-auth', '__Host-sb-auth.0', '__Host-sb-auth.1', '__Host-sb-auth-code-verifier']) {
+      expect(isAuthCookie(name, '__Host-sb-auth')).toBe(true)
+    }
+    expect(isAuthCookie('__Host-sb-authx', '__Host-sb-auth')).toBe(false)
+    expect(isAuthCookie('analytics', '__Host-sb-auth')).toBe(false)
   })
 
   it('drops Secure and the prefix only for local http development', () => {
@@ -1308,7 +1613,15 @@ export function authCookieOptions(site: string) {
     secure,
     sameSite: 'lax' as const,
     path: '/',
+    // Matches the 30-day absolute session limit (decision 3). @supabase/ssr defaults to 400 days
+    // (review finding L8).
+    maxAge: 60 * 60 * 24 * 30,
   }
+}
+
+/** Every cookie name @supabase/ssr may use for the session: base, chunks (.0, .1…), PKCE verifier. */
+export function isAuthCookie(cookieName: string, baseName: string): boolean {
+  return cookieName === baseName || cookieName.startsWith(`${baseName}.`) || cookieName.startsWith(`${baseName}-`)
 }
 ```
 
@@ -1318,6 +1631,8 @@ type SecurityEvent =
   | 'sign_in_link_failed'
   | 'join_link_failed'
   | 'sign_in_failed'
+  | 'sign_in_succeeded'
+  | 'sign_out_failed'
   | 'honeypot_tripped'
   | 'store_code_not_found'
   | 'progress_save_failed'
@@ -1381,7 +1696,7 @@ import { cache } from 'react'
 import { createSessionClient } from '@/lib/supabase/server'
 
 /** The minimal signed-in user DTO. Pages and actions get this, never the raw session. */
-export type CurrentUser = { id: string; firstName: string; storeName: string | null }
+export type CurrentUser = { id: string; firstName: string; email: string; storeName: string | null }
 
 /**
  * Data access layer (security framework section 4). getUser() asks Supabase Auth, so a
@@ -1398,7 +1713,12 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     .eq('id', data.user.id)
     .maybeSingle()
   if (!profile?.active) return null
-  return { id: data.user.id, firstName: profile.first_name, storeName: profile.stores?.name ?? null }
+  return {
+    id: data.user.id,
+    firstName: profile.first_name,
+    email: data.user.email ?? '',
+    storeName: profile.stores?.name ?? null,
+  }
 })
 
 export async function requireUser(): Promise<CurrentUser> {
@@ -1462,9 +1782,9 @@ describe('PersonName', () => {
 
 describe('StoreCode', () => {
   it('normalises case and whitespace', () => {
-    expect(StoreCode.parse(' tst-rob-7k2q9m ')).toBe('TST-ROB-7K2Q9M')
+    expect(StoreCode.parse(' tst-rob-7k2q9mxh ')).toBe('TST-ROB-7K2Q9MXH')
   })
-  it.each(['TST-ROB-7K2Q', 'TST-ROB-7K2Q9I', 'TSTROB7K2Q9M', "x' or 1=1", 'A'.repeat(41)])('rejects %j', (value) => {
+  it.each(['TST-ROB-7K2Q', 'TST-ROB-7K2Q9MXI', 'TSTROB7K2Q9M', "x' or 1=1", 'A'.repeat(41)])('rejects %j', (value) => {
     expect(StoreCode.safeParse(value).success).toBe(false)
   })
 })
@@ -1483,7 +1803,7 @@ describe('form inputs', () => {
       lastName: 'Lee',
       email: 'pat@example.com',
       marketingOptIn: 'on',
-      code: 'tst-rob-7k2q9m',
+      code: 'tst-rob-7k2q9mxh',
       website: '',
     })
     expect(parsed).toEqual({
@@ -1491,7 +1811,7 @@ describe('form inputs', () => {
       lastName: 'Lee',
       email: 'pat@example.com',
       marketingOptIn: true,
-      code: 'TST-ROB-7K2Q9M',
+      code: 'TST-ROB-7K2Q9MXH',
       website: '',
     })
   })
@@ -1528,9 +1848,9 @@ const SITE = 'https://academy.carbonoffroad.com.au'
 describe('safeNextPath', () => {
   it.each([
     ['/dashboard', '/dashboard'],
-    ['/join/TST-ROB-7K2Q9M', '/join/TST-ROB-7K2Q9M'],
+    ['/join/TST-ROB-7K2Q9MXH', '/join/TST-ROB-7K2Q9MXH'],
     ['/lessons/winches/scout-pro-10k-v3', '/lessons/winches/scout-pro-10k-v3'],
-    [`${SITE}/join/TST-ROB-7K2Q9M`, '/join/TST-ROB-7K2Q9M'],
+    [`${SITE}/join/TST-ROB-7K2Q9MXH`, '/join/TST-ROB-7K2Q9MXH'],
     ['/dashboard?utm_source=x#top', '/dashboard'],
   ])('allows %s', (input, expected) => {
     expect(safeNextPath(input, SITE)).toBe(expected)
@@ -1587,7 +1907,7 @@ export const StoreCode = z
   .max(40)
   .trim()
   .toUpperCase()
-  .regex(/^[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{6}$/)
+  .regex(/^[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{8}$/)
 
 /** Hidden field that people never fill in, but bots do (control 19). */
 const Honeypot = z.string().max(200).default('')
@@ -1619,7 +1939,7 @@ export const ConfirmInput = z.object({
 /** Pages a sign-in link may land on. Anything else goes to the dashboard (T-13). */
 const ALLOWED = [
   /^\/dashboard$/,
-  /^\/join\/[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{6}$/,
+  /^\/join\/[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{8}$/,
   /^\/lessons(\/[a-z0-9-]+){0,2}$/,
 ]
 
@@ -1685,7 +2005,7 @@ describe('nonceCsp (control 11, Tier C authenticated areas)', () => {
     for (const directive of [
       "frame-ancestors 'none'",
       "object-src 'none'",
-      "base-uri 'self'",
+      "base-uri 'none'",
       "form-action 'self'",
       "frame-src 'none'",
     ]) {
@@ -1699,7 +2019,7 @@ describe('nonceCsp (control 11, Tier C authenticated areas)', () => {
 })
 
 describe('isAccountPath', () => {
-  it.each(['/dashboard', '/sign-in', '/join', '/join/TST-ROB-7K2Q9M', '/auth/confirm'])('includes %s', (path) => {
+  it.each(['/dashboard', '/sign-in', '/join', '/join/TST-ROB-7K2Q9MXH', '/auth/confirm'])('includes %s', (path) => {
     expect(isAccountPath(path)).toBe(true)
   })
   it.each(['/', '/lessons', '/lessons/winches', '/certified', '/go/x', '/joiner', '/sign-in-help'])(
@@ -1755,7 +2075,7 @@ export function nonceCsp(nonce: string, dev: boolean): string {
     'connect-src': ["'self'", ...(dev ? ['ws:'] : [])],
     'frame-src': ["'none'"],
     'object-src': ["'none'"],
-    'base-uri': ["'self'"],
+    'base-uri': ["'none'"],
     'form-action': ["'self'"],
     'frame-ancestors': ["'none'"],
   }
@@ -1783,6 +2103,8 @@ export const publicHeaderSource = '/((?!dashboard|sign-in|join|auth).*)'
 ```
 
 The lookahead also catches look-alike paths such as `/joiner` or `/authors`. A page like that would get no CSP at all, because it's not in the proxy matcher either. None exist today. Task 18 Step 2 checks that every real route gets exactly one CSP header.
+
+In the same file, change the public CSP's `'base-uri': ["'self'"]` to `'base-uri': ["'none'"]`. ASVS 3.4.3 requires `base-uri 'none'` in the global policy (review finding L1), and no page uses a `<base>` tag. Update the matching assertion in `src/config/security-headers.test.ts` from `"base-uri 'self'"` to `"base-uri 'none'"`.
 
 In `next.config.ts`, split the headers so the CSP applies to public paths only. The other headers still apply everywhere:
 
@@ -1862,10 +2184,22 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Keep in sync with ACCOUNT_PATHS in src/config/csp.ts (tested in Task 18).
-  matcher: ['/dashboard/:path*', '/sign-in', '/join', '/join/:path*', '/auth/:path*'],
+  matcher: [
+    // Account pages. Keep in sync with ACCOUNT_PATHS in src/config/csp.ts (tested in Task 18).
+    '/dashboard/:path*',
+    '/sign-in',
+    '/join',
+    '/join/:path*',
+    '/auth/:path*',
+    // Progress Server Actions POST to lesson pages. Running the proxy for those requests only
+    // gives them a managed session refresh and no-store, and leaves the static lesson pages
+    // alone (review finding L7, T-18).
+    { source: '/lessons/:path*', has: [{ type: 'header', key: 'next-action' }] },
+  ],
 }
 ```
+
+For lesson-page action requests, the nonce CSP header is harmless (the response isn't HTML), but skip it to avoid a second CSP header. Add `const isAction = request.headers.has('next-action')` at the top of `proxy()`, and wrap both CSP lines (`requestHeaders.set(CSP_REQUEST_HEADER, csp)` and `response.headers.set('Content-Security-Policy-Report-Only', csp)`) in `if (!isAction)`.
 
 - [ ] **Step 6: Per-request layout for account pages.** Move nothing yet; the pages are created in Tasks 9–14 inside this route group:
 
@@ -2095,10 +2429,10 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 vi.mock('@/lib/stores/lookup', () => ({
   lookupStore: vi.fn(async (code: string) =>
-    code === 'TST-ROB-7K2Q9M' ? { storeName: 'Test Store Robina', partnerName: 'Test Partner' } : null,
+    code === 'TST-ROB-7K2Q9MXH' ? { storeName: 'Test Store Robina', partnerName: 'Test Partner' } : null,
   ),
 }))
-vi.mock('next/headers', () => ({ headers: async () => new Headers() }))
+vi.mock('next/headers', () => ({ headers: async () => new Headers(), cookies: async () => ({ getAll: () => [], set: () => {} }) }))
 vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://academy.example.com')
 
 const { requestJoinLink, requestSignInLink } = await import('./actions')
@@ -2151,13 +2485,13 @@ describe('requestJoinLink', () => {
   const valid = { firstName: 'Pat', lastName: 'Lee', email: 'pat@example.com', website: '' }
 
   it('creates the account with names, store code and consent, and lands on the join page', async () => {
-    await requestJoinLink(idle, form({ ...valid, code: 'tst-rob-7k2q9m', marketingOptIn: 'on' }))
+    await requestJoinLink(idle, form({ ...valid, code: 'tst-rob-7k2q9mxh', marketingOptIn: 'on' }))
     expect(signInWithOtp).toHaveBeenCalledWith({
       email: 'pat@example.com',
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: 'https://academy.example.com/join/TST-ROB-7K2Q9M',
-        data: { first_name: 'Pat', last_name: 'Lee', store_code: 'TST-ROB-7K2Q9M', marketing_opt_in: true },
+        emailRedirectTo: 'https://academy.example.com/join/TST-ROB-7K2Q9MXH',
+        data: { first_name: 'Pat', last_name: 'Lee', store_code: 'TST-ROB-7K2Q9MXH', marketing_opt_in: true },
       },
     })
   })
@@ -2172,7 +2506,7 @@ describe('requestJoinLink', () => {
   })
 
   it('refuses a code that matches no active store', async () => {
-    const result = await requestJoinLink(idle, form({ ...valid, code: 'TST-NOP-000000' }))
+    const result = await requestJoinLink(idle, form({ ...valid, code: 'TST-NOP-00000000' }))
     expect(result.status).toBe('invalid')
     expect(signInWithOtp).not.toHaveBeenCalled()
   })
@@ -2224,13 +2558,14 @@ export async function lookupStore(code: string): Promise<StoreSummary | null> {
 // src/lib/auth/actions.ts
 'use server'
 
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { z } from 'zod'
 import { safeNextPath } from '@/lib/auth/next-path'
 import type { FormState } from '@/lib/forms/state'
 import { logSecurityEvent } from '@/lib/log'
 import { siteUrl } from '@/lib/site'
+import { authCookieOptions, isAuthCookie } from '@/lib/supabase/cookies'
 import { lookupStore } from '@/lib/stores/lookup'
 import { createSessionClient } from '@/lib/supabase/server'
 import { ConfirmInput, JoinInput, SignInInput } from '@/lib/validation/account'
@@ -2259,11 +2594,30 @@ const MESSAGES = {
   email: 'Enter a valid email address, like name@example.com.',
   firstName: 'Enter your first name.',
   lastName: 'Enter your last name.',
-  code: 'Check the store code. It looks like BCF-ROB-7K2Q9M.',
+  code: 'Check the store code. It looks like BCF-ROB-7K2Q9MXH.',
+}
+
+/**
+ * Supabase sends the email while the request waits, so an existing account answers more slowly
+ * than an unknown one. Holding every reply to a minimum time hides most of that difference
+ * (review finding L5, T-09). Not a hard guarantee: a send slower than the floor still shows.
+ */
+const RESPONSE_FLOOR_MS = process.env.NODE_ENV === 'test' ? 0 : 1500
+
+async function withResponseFloor(work: () => Promise<FormState>): Promise<FormState> {
+  const started = Date.now()
+  const result = await work()
+  const wait = RESPONSE_FLOOR_MS - (Date.now() - started)
+  if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait))
+  return result
 }
 
 /** Sign in to an existing account. One answer for every outcome (control 02, T-09). */
-export async function requestSignInLink(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function requestSignInLink(prev: FormState, formData: FormData): Promise<FormState> {
+  return withResponseFloor(() => sendSignInLink(prev, formData))
+}
+
+async function sendSignInLink(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = SignInInput.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
     return { status: 'invalid', fieldErrors: fieldErrors(parsed.error, MESSAGES) }
@@ -2285,7 +2639,11 @@ export async function requestSignInLink(_prev: FormState, formData: FormData): P
 }
 
 /** Create an account (staff with a store code, or customers without one), or sign in again. */
-export async function requestJoinLink(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function requestJoinLink(prev: FormState, formData: FormData): Promise<FormState> {
+  return withResponseFloor(() => sendJoinLink(prev, formData))
+}
+
+async function sendJoinLink(_prev: FormState, formData: FormData): Promise<FormState> {
   const raw = Object.fromEntries(formData)
   const values = {
     firstName: String(raw.firstName ?? '').slice(0, 50),
@@ -2332,19 +2690,47 @@ export async function confirmSignIn(_prev: FormState, formData: FormData): Promi
   const parsed = ConfirmInput.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { status: 'invalid' }
   const supabase = await createSessionClient()
-  const { error } = await supabase.auth.verifyOtp({ type: 'email', token_hash: parsed.data.tokenHash })
-  if (error) {
-    logSecurityEvent('sign_in_failed', { code: error.code, requestId: await requestId() })
+  // ASVS 7.2.4: signing in again ends any session already on this device. No-op if none.
+  await supabase.auth.signOut({ scope: 'local' })
+  const { data, error } = await supabase.auth.verifyOtp({
+    type: 'email',
+    token_hash: parsed.data.tokenHash,
+  })
+  if (error || !data.user) {
+    logSecurityEvent('sign_in_failed', { code: error?.code, requestId: await requestId() })
     return { status: 'invalid' }
   }
+  // ASVS 16.3.1: successful authentications are logged too.
+  logSecurityEvent('sign_in_succeeded', { userId: data.user.id, requestId: await requestId() })
   redirect(safeNextPath(parsed.data.next, siteUrl()))
 }
 
-/** Sign out this device: clears the cookies and revokes this session's refresh token. */
-export async function signOut() {
+/**
+ * Ends the session at Supabase, then always clears the session cookies on this device. If the
+ * Supabase call fails (a network error, say), supabase-js keeps its cookies, and a learner on a
+ * shared store device would think they'd signed out when they hadn't (review finding L3, T-21).
+ */
+async function endSession(scope: 'local' | 'global') {
   const supabase = await createSessionClient()
-  await supabase.auth.signOut({ scope: 'local' })
+  const { error } = await supabase.auth.signOut({ scope })
+  if (error) logSecurityEvent('sign_out_failed', { code: error.code, requestId: await requestId() })
+  const cookieStore = await cookies()
+  const options = authCookieOptions(siteUrl())
+  for (const { name } of cookieStore.getAll()) {
+    // Set an expired cookie with the same attributes. A __Host- cookie can only be cleared that way.
+    if (isAuthCookie(name, options.name)) cookieStore.set(name, '', { ...options, maxAge: 0 })
+  }
   redirect('/')
+}
+
+/** Sign out this device: ends this session (ASVS 7.4.1). */
+export async function signOut() {
+  await endSession('local')
+}
+
+/** Sign out on every device: ends all of this learner's sessions (ASVS 7.4.3, 7.5.2 in part). */
+export async function signOutEverywhere() {
+  await endSession('global')
 }
 ```
 
@@ -2403,7 +2789,7 @@ export function SignInForm() {
           <p className="font-bold">Check your email.</p>
           <p className="mt-2">
             If there's an Academy account for that address, we've sent a sign-in link. It works once
-            and expires in 15 minutes.
+            and expires in 10 minutes.
           </p>
         </FormMessage>
         <p className="mt-6">
@@ -2481,7 +2867,7 @@ export async function goToStore(_prev: FormState, formData: FormData): Promise<F
   if (!parsed.success) {
     return {
       status: 'invalid',
-      fieldErrors: { code: 'Check the store code. It looks like BCF-ROB-7K2Q9M.' },
+      fieldErrors: { code: 'Check the store code. It looks like BCF-ROB-7K2Q9MXH.' },
       values: { code: String(formData.get('code') ?? '').slice(0, 40) },
     }
   }
@@ -2510,7 +2896,7 @@ export function StoreCodeForm({ label = 'Store code' }: { label?: string }) {
         name="code"
         autoComplete="off"
         autoCapitalize="characters"
-        hint="Your manager or Carbon Offroad rep can give you this. It looks like BCF-ROB-7K2Q9M."
+        hint="Your manager or Carbon Offroad rep can give you this. It looks like BCF-ROB-7K2Q9MXH."
         defaultValue={state.values?.code}
         error={state.fieldErrors?.code}
       />
@@ -2546,7 +2932,7 @@ export function JoinForm({ code }: { code?: string }) {
     return (
       <FormMessage tone="success">
         <p className="font-bold">Check your email.</p>
-        <p className="mt-2">We've sent you a sign-in link. It works once and expires in 15 minutes.</p>
+        <p className="mt-2">We've sent you a sign-in link. It works once and expires in 10 minutes.</p>
       </FormMessage>
     )
   }
@@ -2574,8 +2960,8 @@ export function JoinForm({ code }: { code?: string }) {
       <p className="text-small">
         Carbon Offroad (KPD Industries Pty Ltd) collects your name, email and store to set up your
         Academy account, track your training and recognise Carbon Certified staff. Carbon Offroad
-        can see your progress and certification. Your details are stored with our database provider
-        in [REGION TBC]. Read our{' '}
+        can see your progress and certification. Your details are stored in Sydney, Australia, and
+        our website host processes them in the United States when you use the site. Read our{' '}
         <Link className="link" href="/privacy">
           privacy policy
         </Link>{' '}
@@ -2593,7 +2979,7 @@ export function JoinForm({ code }: { code?: string }) {
 }
 ```
 
-`[REGION TBC]` is the Supabase project region, from the Supabase dashboard. It should say where the data actually is, for example "Sydney, Australia". The notice also depends on decision 7.
+Region checked 29 Oct 2026: both Supabase projects are in ap-southeast-2 (Sydney). The US sentence is there because Netlify functions currently run in us-east-2 (decision S9, APP 8). If S9 moves the functions to Sydney, remove it. The notice also depends on decision 7 (the privacy policy).
 
 - [ ] **Step 4: `/join` page.** Signed out: code entry, plus join as a customer. Signed in: change store (Task 15 adds the copy):
 
@@ -2711,8 +3097,8 @@ export default async function JoinStorePage({ params }: PageProps<'/join/[code]'
 Comparing store names to detect "already a member" is only a UX shortcut. `join_store` itself is idempotent, so a name clash between two stores can't cause harm.
 
 - [ ] **Step 6: Check it in the app** at 375 px and 1280 px:
-  1. `/join/tst-rob-7k2q9m` shows "You're joining Test Store Robina".
-  2. `/join/TST-NOP-000000` shows "We couldn't find that store".
+  1. `/join/tst-rob-7k2q9mxh` shows "You're joining Test Store Robina".
+  2. `/join/TST-NOP-00000000` shows "We couldn't find that store".
   3. `/join` shows both sections.
   4. Submitting the join form with valid fictional details puts **one** email in Mailpit.
   5. Ticking the honeypot in DevTools (set a value on `website`) gives "Check your email" and no email.
@@ -2731,26 +3117,37 @@ git commit -m "feat(join): store code lookup, join and customer sign-up with col
 - Create: `src/app/(account)/auth/confirm/page.tsx`
 - Create: `src/app/(account)/auth/confirm/ConfirmForm.tsx`
 
-- [ ] **Step 1: Confirm form.** It POSTs the token, so scanners that only GET can't spend it:
+- [ ] **Step 1: Confirm form.** The token arrives in the URL **fragment** (`#token_hash=…`). Browsers never send fragments to servers, so the token stays out of Netlify and Supabase request logs (review finding L6). The form reads it in the browser, clears it from the address bar, and POSTs it, so scanners that only GET can't spend it:
 
 ```tsx
 // src/app/(account)/auth/confirm/ConfirmForm.tsx
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { FormMessage } from '@/components/forms/FormMessage'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { confirmSignIn } from '@/lib/auth/actions'
 import { initialFormState } from '@/lib/forms/state'
 
-export function ConfirmForm({ tokenHash, next }: { tokenHash: string; next: string }) {
+export function ConfirmForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(confirmSignIn, initialFormState)
+  // undefined = not read yet; '' = no token in the link
+  const [tokenHash, setTokenHash] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.hash.slice(1)).get('token_hash') ?? ''
+    // Clear the token from the address bar and history (T-12).
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    setTokenHash(token.slice(0, 200))
+  }, [])
+
+  if (tokenHash === undefined) return <p className="mt-8">Checking your link…</p>
 
   if (!tokenHash || state.status === 'invalid') {
     return (
       <div className="mt-8 flex flex-col gap-6">
         <FormMessage tone="problem">
-          That link has expired or has already been used. Links work once, for 15 minutes.
+          That link has expired or has already been used. Links work once, for 10 minutes.
         </FormMessage>
         <div>
           <ButtonLink href="/sign-in">Get a new link</ButtonLink>
@@ -2783,14 +3180,17 @@ export const metadata: Metadata = { title: 'Sign in', robots: { index: false } }
 
 const first = (value: string | string[] | undefined) => (typeof value === 'string' ? value : '')
 
-/** Never logs or renders the token. proxy.ts sets no-referrer and no-store here (T-12). */
+/**
+ * The token is in the fragment, so the server never sees it (ConfirmForm reads it). Only the
+ * `next` path comes through the query. proxy.ts sets no-referrer and no-store here (T-12).
+ */
 export default async function ConfirmPage({ searchParams }: PageProps<'/auth/confirm'>) {
   const query = await searchParams
   return (
     <Container className="max-w-xl py-10 md:py-14">
       <h1 className="text-h1 md:text-h1-lg">Sign in to the Academy</h1>
       <p className="mt-4">Tap the button to finish signing in on this device.</p>
-      <ConfirmForm tokenHash={first(query.token_hash).slice(0, 200)} next={first(query.next).slice(0, 500)} />
+      <ConfirmForm next={first(query.next).slice(0, 500)} />
     </Container>
   )
 }
@@ -2812,7 +3212,7 @@ git commit -m "feat(auth): magic-link confirm step that signs in on POST only"
 ```
 
 - [ ] **Step 5: Check the email and link locally.** The full loop ends on the dashboard in Task 14.
-  1. `npm run dev`, then join at `/join/TST-ROB-7K2Q9M` with a fictional `@example.com` address.
+  1. `npm run dev`, then join at `/join/TST-ROB-7K2Q9MXH` with a fictional `@example.com` address.
   2. In Mailpit (`http://127.0.0.1:54324`), check:
      - the subject
      - the preview text
@@ -2824,7 +3224,7 @@ git commit -m "feat(auth): magic-link confirm step that signs in on POST only"
   4. Open the link. Expected: the confirm page, and **no** session cookie yet (DevTools → Application → Cookies).
   5. Press Continue. Expected:
      - a cookie named `sb-auth` (or `sb-auth.0`, `.1` if chunked), `HttpOnly`, `SameSite=Lax`
-     - a redirect to `/join/TST-ROB-7K2Q9M`, then to `/dashboard` (404 until Task 14)
+     - a redirect to `/join/TST-ROB-7K2Q9MXH`, then to `/dashboard` (404 until Task 14)
   6. Open the same email link again and press Continue. Expected: "That link has expired or has already been used."
 
 ---
@@ -2840,15 +3240,29 @@ git commit -m "feat(auth): magic-link confirm step that signs in on POST only"
 ```tsx
 // src/components/account/SignOutButton.tsx
 import { Button } from '@/components/ui/Button'
-import { signOut } from '@/lib/auth/actions'
+import { signOut, signOutEverywhere } from '@/lib/auth/actions'
 
-/** POST-only sign-out (control 08). Shared store devices make this matter (T-21). */
+/**
+ * POST-only sign-out (control 08). Shown on every signed-in page (ASVS 7.4.4). Shared store
+ * devices make this matter (T-21).
+ */
 export function SignOutButton() {
   return (
     <form action={signOut}>
       <Button type="submit" variant="secondary">
         Sign out
       </Button>
+    </form>
+  )
+}
+
+/** Ends every session for this learner, for example after using a shared or lost device. */
+export function SignOutEverywhereButton() {
+  return (
+    <form action={signOutEverywhere}>
+      <button type="submit" className="link min-h-11 text-small">
+        Sign out on all devices
+      </button>
     </form>
   )
 }
@@ -2865,7 +3279,17 @@ const navLinks = [
 ]
 ```
 
-- [ ] **Step 3: Run the tests**
+- [ ] **Step 3: Sign-out on the other signed-in pages** (ASVS 7.4.4: easy, visible sign-out on every page that needs authentication). In `src/app/(account)/join/page.tsx` (the signed-in "Change store" view) and `src/app/(account)/join/[code]/page.tsx` (the signed-in "Move to…?" view), add this after the form:
+
+```tsx
+        <div className="mt-10 border-t-2 border-dust pt-6">
+          <SignOutButton />
+        </div>
+```
+
+Import it with `import { SignOutButton } from '@/components/account/SignOutButton'`. The dashboard gets both buttons in Task 14.
+
+- [ ] **Step 4: Run the tests**
 
 ```bash
 npm test && npm run lint
@@ -2873,10 +3297,10 @@ npm test && npm run lint
 
 Expected: PASS. If a test asserts the old "Sign in" nav label, update that assertion to "My Academy".
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/components/account src/components/layout/SiteHeader.tsx
+git add src/components/account src/components/layout/SiteHeader.tsx "src/app/(account)/join"
 git commit -m "feat(auth): POST sign-out and a My Academy header link"
 ```
 
@@ -3374,7 +3798,7 @@ Expected: PASS.
 // src/app/(account)/dashboard/page.tsx
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SignOutButton } from '@/components/account/SignOutButton'
+import { SignOutButton, SignOutEverywhereButton } from '@/components/account/SignOutButton'
 import { ButtonLink } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -3393,6 +3817,8 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-h1 md:text-h1-lg">Welcome, {user.firstName}</h1>
+          {/* EX-02 compensating control: shows whose account this is, on shared devices too. */}
+          <p className="mt-2 text-small">Signed in as {user.email}</p>
           <p className="mt-2">
             {user.storeName ? <>Store: {user.storeName}. </> : <>Customer account. </>}
             <Link className="link" href="/join">
@@ -3400,7 +3826,10 @@ export default async function DashboardPage() {
             </Link>
           </p>
         </div>
-        <SignOutButton />
+        <div className="flex flex-col items-start gap-1">
+          <SignOutButton />
+          <SignOutEverywhereButton />
+        </div>
       </div>
 
       <section aria-labelledby="certified" className="mt-10 bg-carbon-black p-6 text-white md:p-8">
@@ -3477,7 +3906,7 @@ Brand notes:
 - The progress-bar inline `style` width is covered by the CSP's `style-src 'unsafe-inline'`.
 
 - [ ] **Step 6: Full local loop** (BUILD_PLAN "Done when" items 1 and 4):
-  1. Join at `/join/TST-ROB-7K2Q9M` with a new fictional address, open the Mailpit link, and press Continue. Expected: `/dashboard` shows "Welcome, <first name>" and "Store: Test Store Robina".
+  1. Join at `/join/TST-ROB-7K2Q9MXH` with a new fictional address, open the Mailpit link, and press Continue. Expected: `/dashboard` shows "Welcome, <first name>" and "Store: Test Store Robina".
   2. Sign out. Then use `/join` → "Join as a customer" with another fictional address, and go through the link. Expected: "Customer account."
   3. Sign out, then go to `/sign-in` with the first address and through the link. Expected: back on the dashboard with the same store.
   4. Check both 375 px and 1280 px in the browser pane.
@@ -3525,24 +3954,24 @@ const form = (code: string) => {
 
 beforeEach(() => {
   rpc.mockReset().mockResolvedValue({ data: [{ store_name: 'Test Store Nerang' }], error: null })
-  requireUser.mockReset().mockResolvedValue({ id: 'u1', firstName: 'Pat', storeName: null })
+  requireUser.mockReset().mockResolvedValue({ id: 'u1', firstName: 'Pat', email: 'pat@example.com', storeName: null })
 })
 
 describe('changeStore', () => {
   it('requires a signed-in learner', async () => {
     requireUser.mockRejectedValue(new Error('REDIRECT /sign-in'))
-    await expect(changeStore(idle, form('TST-NER-3H8W4D'))).rejects.toThrow('REDIRECT /sign-in')
+    await expect(changeStore(idle, form('TST-NER-3H8W4DPA'))).rejects.toThrow('REDIRECT /sign-in')
     expect(rpc).not.toHaveBeenCalled()
   })
 
   it('moves the learner through join_store and goes to the dashboard', async () => {
-    await expect(changeStore(idle, form('tst-ner-3h8w4d'))).rejects.toThrow('REDIRECT /dashboard')
-    expect(rpc).toHaveBeenCalledWith('join_store', { p_code: 'TST-NER-3H8W4D' })
+    await expect(changeStore(idle, form('tst-ner-3h8w4dpa'))).rejects.toThrow('REDIRECT /dashboard')
+    expect(rpc).toHaveBeenCalledWith('join_store', { p_code: 'TST-NER-3H8W4DPA' })
   })
 
   it('reports an unknown or inactive code', async () => {
     rpc.mockResolvedValue({ data: [], error: null })
-    const result = await changeStore(idle, form('TST-OLD-9X9X9X'))
+    const result = await changeStore(idle, form('TST-OLD-9X9X9X9X'))
     expect(result.status).toBe('invalid')
   })
 
@@ -3634,9 +4063,9 @@ npx vitest run src/lib/stores && npm run typecheck
 ```
 
 Expected: PASS. Then, signed in as a Robina learner:
-1. Dashboard → "Change store" → enter `TST-NER-3H8W4D` → "Move to Test Store Nerang?" → confirm.
+1. Dashboard → "Change store" → enter `TST-NER-3H8W4DPA` → "Move to Test Store Nerang?" → confirm.
 2. Expected: the dashboard says "Store: Test Store Nerang".
-3. Entering `TST-OLD-9X9X9X` shows "We couldn't find that store".
+3. Entering `TST-OLD-9X9X9X9X` shows "We couldn't find that store".
 
 PRD 6.3's "both stores' statuses are recalculated" depends on certified-store status, which Phase 5 builds. Nothing to recalculate yet.
 
@@ -3762,12 +4191,21 @@ Every step here changes a hosted system. **Ask Rich first** (CLAUDE.md), and rec
   | Setting | Value |
   |---|---|
   | Authentication → Sign In / Providers → Allow new users to sign up | **Off** (check, don't change) |
-  | Email → magic link / OTP expiry | 900 seconds |
+  | Email → magic link / OTP expiry | 600 seconds |
   | Sessions → time-box | 720 hours |
   | Sessions → inactivity timeout | 168 hours |
   | URL configuration → redirect URLs | add `https://*--carbonoffroadacademy.netlify.app/**` |
   | Email templates → Magic link, Confirm signup | paste `supabase/templates/magic-link.html`, with the subject from config.toml |
   | Rate limits → emails per hour | 30 (raise before a big onboarding day; the hosted limit only applies with custom SMTP) |
+  | Email → Confirm email | **On** (a password sign-up through the API must still prove the mailbox) |
+  | Password security → minimum length | 15 |
+  | Email → Secure password change | **On** (the database trigger refuses password changes anyway) |
+  | Email → Secure email change (double confirm) | **On** |
+  | Email → OTP length | **10** (the maximum; review finding M1) |
+  | Rate limits → token verifications | 10 per 5 minutes per IP (these calls can go straight to Supabase, skipping Netlify) |
+  | Notifications → email changed | **On** |
+  | Password security → leaked password protection | On (a Pro feature; checks passwords against breached-password lists, ASVS 6.2.12) |
+  | JWT settings | Check that access tokens carry `session_id` (decode one from the preview sign-in); `current_learner()` depends on it |
 
 - [ ] **Step 3: Netlify env check (no change expected).** Confirm `NEXT_PUBLIC_SITE_URL` is set in **every** context: production, deploy previews and branch deploys. `siteUrl()` throws without it. No secret key is needed by the app in any context.
 
@@ -3795,12 +4233,12 @@ const email = `${label}@example.com`
 const created = await admin.auth.admin.createUser({
   email,
   email_confirm: true,
-  user_metadata: { first_name: 'Preview', last_name: 'Tester', store_code: 'TST-ROB-7K2Q9M' },
+  user_metadata: { first_name: 'Preview', last_name: 'Tester', store_code: 'TST-ROB-7K2Q9MXH' },
 })
 if (created.error && created.error.code !== 'email_exists') throw created.error
 const { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email })
 if (error) throw error
-console.log(`${previewOrigin}/auth/confirm?token_hash=${data.properties.hashed_token}&type=email&next=/dashboard`)
+console.log(`${previewOrigin}/auth/confirm?next=%2Fdashboard#token_hash=${data.properties.hashed_token}`)
 ```
 
 - [ ] **Step 5: Deploy preview checks.** Open the PR, wait for the preview, sign in to Netlify in the browser pane, then check each of these:
@@ -3837,7 +4275,7 @@ Expected: all pass, and `check:bundle` finds no secret in `.next/static`.
 
 ```bash
 npm start &
-for p in / /lessons /certified /privacy /sign-in /join /join/TST-ROB-7K2Q9M /auth/confirm /dashboard; do
+for p in / /lessons /certified /privacy /sign-in /join /join/TST-ROB-7K2Q9MXH /auth/confirm /dashboard; do
   echo "== $p"
   curl -s -o /dev/null -D - "http://localhost:3000$p" | grep -iE '^(content-security-policy|cache-control|set-cookie|referrer-policy|location)'
 done
@@ -3879,7 +4317,6 @@ grep -rn "TBC\]" src supabase/templates
 
 Expected to find until resolved:
 - `[PRIVACY POLICY TEXT TBC…]` (decision 7)
-- `[REGION TBC]` (collection notice)
 - `[PHONE TBC]` (email footer)
 
 - [ ] **Step 8: Evidence and docs**
@@ -3887,7 +4324,7 @@ Expected to find until resolved:
   - `docs/security/THREAT_MODEL.md`: move each T-09 to T-22 status to Verified, or note what's pending (for example T-10 Turnstile not used, T-20 accepted).
   - `docs/security/PERMISSIONS.md` and `ASVS.md`: fill in the evidence columns.
   - `docs/SECURITY.md`: key inventory row for the staging secret key on Rich's machine (`.env.staging.local`), with purpose, storage, rotation and revoke steps.
-  - `docs/PRD.md` 5.2: the store code example becomes `BCF-ROB-7K2Q9M`, with the format noted.
+  - `docs/PRD.md` 5.2: the store code example becomes `BCF-ROB-7K2Q9MXH`, with the format noted.
   - `docs/BUILD_PLAN.md`: Phase 3 status, and what's pending (the Vimeo test video, the privacy text, and enforcing the CSP in Phase 7).
   - `VULNERABILITIES.md`: run `npm audit --omit=dev` and check advisories for `@supabase/ssr` and `cookie`. Record any that apply.
 
