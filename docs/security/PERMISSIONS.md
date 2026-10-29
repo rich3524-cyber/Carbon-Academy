@@ -28,6 +28,13 @@ Covers Phase 3 (accounts and progress). Admin rows are filled in Phase 6, when a
 | `lesson_progress`: read | ✗ † | Own rows † | ✗ † | Phase 6 reports | |
 | `lesson_progress`: write | ✗ † | Fn `save_lesson_progress` only: own rows, published lessons, clamped, monotonic † | ✗ (the function takes no user ID) † | | |
 | `lesson_progress`: delete | ✗ † | ✗ † | ✗ | Phase 6 | Cascades with the profile † |
+| `questions`, `answer_options` (incl. `is_correct`): read | ✗ | ✗ directly; question and option text only through Fn `get_quiz`, once unlocked | ✗ | Phase 6 | No grants at all (T-30, T-35) |
+| `questions`, `answer_options`: write | ✗ | ✗ | ✗ | Phase 6 | |
+| `quiz_attempts`: read | ✗ | Own rows: `id`, `user_id`, `lesson_id`, `score`, `total`, `passed`, `created_at`. **Not** `answers` | ✗ | Phase 6 reports | Column grant + RLS (T-34) |
+| `quiz_attempts`: write | ✗ | Fn `submit_quiz` only: unlocked, within the limit, valid answers | ✗ (the function takes no user ID) | | No insert, update or delete grants |
+| Fn `quiz_status(lesson)` | Says only `unavailable` or `signed_out` | State and attempts left | n/a | | |
+| Fn `lessons_with_quiz()` | ✗ | IDs of published lessons with a ready quiz | n/a | | Dashboard "complete" rule |
+| Fn `quiz_ready`, `quiz_unlocked`, `setting_int` | ✗ | ✗ | ✗ | | EXECUTE revoked: internal helpers; `quiz_unlocked` takes a user ID |
 | Fn `join_store`, `save_lesson_progress` | ✗ (not granted, and `auth.uid()` is checked) † | ✓ | n/a | | |
 
 ## App (Server Actions)
@@ -43,6 +50,8 @@ Every Server Action is a public endpoint (framework section 4). `proxy.ts` is ne
 | `signOut`, `signOutEverywhere` | Anyone (no-op when signed out) | POST only (Origin check); cookies cleared even if Supabase fails | Task 18 |
 | `getResumePoint`, `saveProgress` | Anyone; signed-out callers get nothing | `getClaims()`; Zod; the database checks `current_learner()` again | `src/lib/progress/actions.test.ts` |
 | `changeStore` | Signed-in learner | `requireUser()`; Zod; `join_store` checks `current_learner()` | `src/lib/stores/actions.test.ts` |
+| `getQuizStatus` | Anyone | Zod lesson ID; `quiz_status` checks `current_learner()` | `src/lib/quiz/actions.test.ts` |
+| `startQuiz`, `submitQuiz` | Signed-in learner | `getClaims()`; Zod; the database checks `current_learner()`, the unlock, the limit and the answers again | `src/lib/quiz/actions.test.ts`, `tests/db/quiz.test.ts` |
 
 ## Auth API rules enforced in the database (all pathways)
 

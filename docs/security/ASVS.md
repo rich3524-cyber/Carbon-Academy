@@ -18,15 +18,15 @@ Phase 3 plan: `docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.m
 |---|---|---|---|---|
 | 2.1.1 | 1 | Validation rules documented per data item | Zod schemas in `src/lib/validation/` (email, names, store code, slugs, UTMs) are the documentation, and each has a comment | Met (local tests, 29 Oct 2026) |
 | 2.1.2 | 2 | Rules for combined data items documented | A store code must resolve to an active store before a join is accepted; there are no other combined fields | Met (local tests, 29 Oct 2026) |
-| 2.1.3 | 2 | Business limits documented, per user and global | Plan decisions 4 and 5, and the function comments: one save every 2 s per learner per lesson, edge limits per IP, 60 QR scans per link per minute | Met (local tests, 29 Oct 2026) |
-| 2.2.1 | 1 | Positive (allowlist) validation | Regex allowlists for names, codes and slugs; enums for UTMs; `safeNextPath` allowlist | Met (local tests, 29 Oct 2026) |
-| 2.2.2 | 1 | Validation enforced server-side | Every Server Action and Route Handler parses with Zod; the database re-checks with constraints and functions | Met (local tests, 29 Oct 2026) |
-| 2.2.3 | 2 | Related items are consistent | The trigger ignores a code that doesn't match an active store; progress position is clamped to the lesson's duration | Met (local tests, 29 Oct 2026) |
-| 2.3.1 | 1 | Flows run in order, with no skipped steps | Sign-in needs a valid token; join needs a valid code or none; change store needs a session and a code | Met (local tests, 29 Oct 2026) |
-| 2.3.2 | 2 | Business limits implemented | As in 2.1.3 | Met (local tests, 29 Oct 2026) |
-| 2.3.3 | 2 | Operations are all-or-nothing (transactions) | Each write is a single database function call, so it runs in one transaction | Met (local tests, 29 Oct 2026) |
+| 2.1.3 | 2 | Business limits documented, per user and global | Plan decisions 4 and 5, and the function comments: one save every 2 s per learner per lesson, edge limits per IP, 60 QR scans per link per minute. **Phase 4: 10 quiz attempts per learner per lesson per hour (setting, clamped 1–100); quiz unlock at 90% plus 45% of the duration elapsed (plan decisions 1 and 6, function comments)** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 2.2.1 | 1 | Positive (allowlist) validation | Regex allowlists for names, codes and slugs; enums for UTMs; `safeNextPath` allowlist. **Phase 4: quiz IDs are UUIDs, at most 10 answers (`src/lib/validation/quiz.ts`)** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 2.2.2 | 1 | Validation enforced server-side | Every Server Action and Route Handler parses with Zod; the database re-checks with constraints and functions. **Phase 4: `submitQuiz` parses with Zod; `submit_quiz` re-checks every answer** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 2.2.3 | 2 | Related items are consistent | The trigger ignores a code that doesn't match an active store; progress position is clamped to the lesson's duration. **Phase 4: each answer must be one of its own question's options, and every question answered exactly once (T-33)** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 2.3.1 | 1 | Flows run in order, with no skipped steps | Sign-in needs a valid token; join needs a valid code or none; change store needs a session and a code. **Phase 4: questions are served and graded only after the unlock (watched, then quiz), checked in the database each time** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 2.3.2 | 2 | Business limits implemented | As in 2.1.3. **Phase 4: the attempt limit and the unlock are enforced in `submit_quiz`** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 2.3.3 | 2 | Operations are all-or-nothing (transactions) | Each write is a single database function call, so it runs in one transaction. **Phase 4: grading and logging an attempt is one function call, so one transaction** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
 | 2.3.4 | 2 | Locking for limited resources | N/A: no limited-quantity resources | N/A |
-| 2.4.1 | 2 | Anti-automation against excessive calls | Netlify edge rate limits; honeypot; Supabase email limits; per-learner save throttle | Met (edge limits on preview 15; Supabase limits local and staging) |
+| 2.4.1 | 2 | Anti-automation against excessive calls | Netlify edge rate limits; honeypot; Supabase email limits; per-learner save throttle. **Phase 4: per-learner, per-lesson attempt limit under an advisory lock (T-32)** (to verify in Phase 4 Task 14) | Met (edge limits on preview 15; Supabase limits local and staging) |
 
 ## V3 Web Frontend Security
 
@@ -109,9 +109,9 @@ The Academy's only learner authentication is an **email magic link**. ASVS 5.0 t
 |---|---|---|---|---|
 | 8.1.1 | 1 | Function- and data-level rules documented | `docs/security/PERMISSIONS.md` | Met (documented 29 Oct 2026); tests in Task 3 |
 | 8.1.2 | 2 | Field-level rules documented | `PERMISSIONS.md`: `store_code` not readable by learners; `role` and `store_id` not writable | Met (documented) |
-| 8.2.1 | 1 | Function-level access restricted | Grants on functions; `requireUser()` in actions | Met (local tests, 29 Oct 2026) |
-| 8.2.2 | 1 | Data-level access restricted (IDOR) | RLS on `current_learner()`; functions take no user ID | Met (local tests, 29 Oct 2026) |
-| 8.2.3 | 2 | Field-level access restricted | Column grant on `stores`; no update grants on `profiles` | Met (local tests, 29 Oct 2026) |
+| 8.2.1 | 1 | Function-level access restricted | Grants on functions; `requireUser()` in actions. **Phase 4: EXECUTE revoked on the quiz helpers; only the four quiz functions are granted** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 8.2.2 | 1 | Data-level access restricted (IDOR) | RLS on `current_learner()`; functions take no user ID. **Phase 4: quiz functions take no user ID; `quiz_attempts` RLS on `current_learner()`** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
+| 8.2.3 | 2 | Field-level access restricted | Column grant on `stores`; no update grants on `profiles`. **Phase 4: no grant on `answer_options`, so `is_correct` is never readable; `quiz_attempts.answers` left out of the column grant** (to verify in Phase 4 Task 14) | Met (local tests, 29 Oct 2026) |
 | 8.3.1 | 1 | Authorisation enforced server-side | Postgres RLS and functions; Server Actions re-check; `proxy.ts` is never the access check | Met (local tests, 29 Oct 2026) |
 | 8.4.1 | 2 | Cross-tenant isolation | Stores act like tenants: learners see only their own store and partner, and can move only with a code | Met (local tests, 29 Oct 2026) |
 
