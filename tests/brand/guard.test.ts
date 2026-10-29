@@ -46,9 +46,10 @@ describe('brand guard', () => {
   })
 
   // Account handles in URLs (facebook.com/CarbonOffroadAU) are addresses, not copy, so a
-  // name straight after "/" or "@" is allowed.
+  // name straight after "/" or "@" is allowed. So are file names, which follow the p.50
+  // convention (CarbonOffroad_Certificate_...), so the name may be joined to an underscore.
   it('spells the brand name as two words (p.16)', () => {
-    expect(offenders(copyFiles, /(?<![/@])CarbonOffroad|Carbon Off[\s-]Road/)).toEqual([])
+    expect(offenders(copyFiles, /(?<![/@])CarbonOffroad(?!_)|Carbon Off[\s-]Road/)).toEqual([])
   })
 
   it('uses colour tokens, not raw hex values, in components', () => {
