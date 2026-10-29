@@ -650,7 +650,7 @@ export function isRenewalOpen(expiresAt: string, windowDays: number, now = new D
 
 - [ ] **Step 1: Dependencies.** Run `npm install pdf-lib @pdf-lib/fontkit`. Both are MIT-licensed and have no native code. Record them in the PR. `npm audit` must stay clean, and Dependabot covers them.
 
-- [ ] **Step 2: Font.** Download the static **Arimo-Regular.ttf** and **Arimo-Bold.ttf** from the official Arimo repository (`github.com/googlefonts/Arimo`, Apache 2.0), along with its `LICENSE.txt`, into `src/lib/certificates/fonts/`. Add a BRAND.md note under "Certificate PDF": Arimo is used in place of Arial, because it's metrically identical and its licence allows embedding and redistribution (decision 4).
+- [ ] **Step 2: Font.** Download the static **Arimo-Regular.ttf** and **Arimo-Bold.ttf** from the official Arimo repository (`github.com/googlefonts/Arimo`, **SIL OFL 1.1**: the repository was relicensed from Apache 2.0, correction 30 Oct 2026), along with its `OFL.txt`, into `src/lib/certificates/fonts/`. Add a BRAND.md note under "Certificate PDF": Arimo is used in place of Arial, because it's metrically identical and its licence allows embedding and redistribution (decision 4).
 
 - [ ] **Step 3: Logo paths from the master.** Generate `logo-paths.ts` from `public/brand/logo-full-black-transparent.svg`, copying every `<path d="…">` in order. This is a copy of the master's data, not a redrawing (p.61). Add a test in `pdf.test.ts` that re-reads the SVG and asserts that `LOGO_PATHS` equals its `d` attributes exactly, so the copy can never drift from the master.
 
