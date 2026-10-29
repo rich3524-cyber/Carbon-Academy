@@ -45,3 +45,22 @@ insert into public.stores (partner_id, name, suburb, state, store_code, active) 
   ('00000000-0000-4000-8000-000000000101', 'Test Store Nerang', 'Nerang', 'QLD', 'TST-NER-3H8W4DPA', true),
   ('00000000-0000-4000-8000-000000000101', 'Test Store Closed', 'Southport', 'QLD', 'TST-OLD-9X9X9X9X', false),
   ('00000000-0000-4000-8000-000000000102', 'Other Store Burleigh', 'Burleigh Heads', 'QLD', 'TST-BUR-5T6Y7Z8W', true);
+
+-- Phase 4 placeholder quizzes (decision 7): three questions per lesson, three options each,
+-- the first option correct. Local and staging only. Real questions are written with each
+-- video script and reviewed by Rich before they reach production.
+with q as (
+  insert into public.questions (lesson_id, prompt, sort_order)
+  select l.id, format('[PLACEHOLDER] Question %s about %s?', n, l.title), n
+  from public.lessons l
+  cross join generate_series(1, 3) as n
+  returning id
+)
+insert into public.answer_options (question_id, text, is_correct)
+select q.id, o.text, o.is_correct
+from q
+cross join (values
+  ('[PLACEHOLDER] The right answer', true),
+  ('[PLACEHOLDER] A wrong answer', false),
+  ('[PLACEHOLDER] Another wrong answer', false)
+) as o (text, is_correct);
