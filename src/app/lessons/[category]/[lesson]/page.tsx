@@ -75,6 +75,7 @@ async function Lesson({ params }: Pick<Props, 'params'>) {
           <VimeoPlayer
             vimeoId={data.vimeoId}
             title={data.title}
+            lessonId={data.id}
             lessonSlug={data.slug}
             categorySlug={data.category.slug}
           />

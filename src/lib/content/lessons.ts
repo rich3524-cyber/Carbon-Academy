@@ -17,6 +17,8 @@ export type LibraryCategory = {
   lessons: LessonCardData[]
 }
 export type LessonDetail = LessonCardData & {
+  /** Public content ID; the player sends it with progress saves (Phase 3). */
+  id: string
   summary: string | null
   vimeoId: string | null
   category: { slug: string; name: string }
@@ -24,7 +26,7 @@ export type LessonDetail = LessonCardData & {
   next: LessonLink | null
 }
 
-type LessonRecord = LessonCardData & { summary: string | null; vimeoId: string | null }
+type LessonRecord = LessonCardData & { id: string; summary: string | null; vimeoId: string | null }
 type CategoryRecord = Omit<LibraryCategory, 'lessons'> & { lessons: LessonRecord[] }
 
 /**
@@ -37,7 +39,7 @@ async function loadLibrary(): Promise<CategoryRecord[]> {
   const { data, error } = await createPublicClient()
     .from('categories')
     .select(
-      'slug, name, description, sort_order, lessons(slug, title, summary, product_name, vimeo_id, is_core, sort_order)',
+      'slug, name, description, sort_order, lessons(id, slug, title, summary, product_name, vimeo_id, is_core, sort_order)',
     )
     .order('sort_order')
     .order('sort_order', { referencedTable: 'lessons' })
@@ -47,6 +49,7 @@ async function loadLibrary(): Promise<CategoryRecord[]> {
     name: category.name,
     description: category.description,
     lessons: category.lessons.map((lesson) => ({
+      id: lesson.id,
       slug: lesson.slug,
       title: lesson.title,
       productName: lesson.product_name,
