@@ -41,6 +41,10 @@ docs/brand/*.pdf
 # Unlicensed font files must never be committed (see docs/BRAND.md)
 *.otf
 *.ttf
+# Except Arimo, which is SIL OFL 1.1 and licensed for embedding and redistribution
+# (BRAND.md "Certificate PDF"). tests/brand/fonts.test.ts allows nothing else here.
+!src/lib/certificates/fonts/Arimo-Regular.ttf
+!src/lib/certificates/fonts/Arimo-Bold.ttf
 
 # TypeScript and Next.js generated
 *.tsbuildinfo
