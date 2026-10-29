@@ -169,10 +169,10 @@ describe('is_correct is unreachable (T-30)', () => {
     expect(JSON.stringify(data)).not.toContain('is_correct')
   })
 
-  it('submit_quiz returns only score, total and passed', async () => {
+  it('submit_quiz returns only score, total, passed and certified (Phase 5)', async () => {
     const { data, error } = await submit(alice!, wrong)
     expect(error).toBeNull()
-    expect(Object.keys(data!).sort()).toEqual(['passed', 'score', 'total'])
+    expect(Object.keys(data!).sort()).toEqual(['certified', 'passed', 'score', 'total'])
   })
 })
 
@@ -234,7 +234,7 @@ describe('unlocking (T-20, T-35)', () => {
 describe('grading (PRD 5.2, D4)', () => {
   it('passes with every answer correct, and records the attempt', async () => {
     const { data } = await submit(bob!, correct)
-    expect(data).toEqual({ score: 2, total: 2, passed: true })
+    expect(data).toEqual({ score: 2, total: 2, passed: true, certified: false })
     const status = await statusOf(bob!.client, lessonId)
     expect(status!.state).toBe('passed')
   })
@@ -242,7 +242,7 @@ describe('grading (PRD 5.2, D4)', () => {
   it('fails with one wrong and keeps the earlier pass (decision 4)', async () => {
     const q1 = Object.keys(correct)[0]!
     const { data } = await submit(bob!, { ...correct, [q1]: wrong[q1] })
-    expect(data).toEqual({ score: 1, total: 2, passed: false })
+    expect(data).toEqual({ score: 1, total: 2, passed: false, certified: false })
     const status = await statusOf(bob!.client, lessonId)
     expect(status!.state).toBe('passed')
   })
