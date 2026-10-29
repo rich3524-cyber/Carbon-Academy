@@ -21,10 +21,12 @@ if (
 }
 if (!/^[a-z0-9-]{1,30}$/.test(label))
   throw new Error('Label: lowercase letters, digits and hyphens')
-const url = process.env.STAGING_SUPABASE_URL ?? ''
+// Trim: a key pasted into a text editor often picks up a stray space.
+const url = (process.env.STAGING_SUPABASE_URL ?? '').trim()
+const secretKey = (process.env.STAGING_SUPABASE_SECRET_KEY ?? '').trim()
 if (!url.startsWith('https://naxngnrzjpdqvuphgbht.')) throw new Error('Staging project only')
 
-const admin = createClient(url, process.env.STAGING_SUPABASE_SECRET_KEY, {
+const admin = createClient(url, secretKey, {
   auth: { persistSession: false },
 })
 const email = `${label}@example.com`

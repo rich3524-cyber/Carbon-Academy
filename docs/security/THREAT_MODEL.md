@@ -108,7 +108,7 @@ Every finding was checked against its source before being accepted. For example,
 | M3 | Medium | `lookup_store` and `join_store` can be called directly through PostgREST, skipping the edge limits | **Fixed.** Store codes now have 8 random characters (about 10^12 per prefix). T-11 corrected |
 | M4 | Medium | Admin recovery wasn't logged or notified, and didn't end the user's sessions | **Fixed.** Runbook added to `PERMISSIONS.md`; ASVS 6.4.3 is now Partial (T-29) |
 | L1 | Low | ASVS 3.4.3 needs `base-uri 'none'` | **Fixed** in both CSPs and their tests |
-| L2 | Low | `current_learner()` ignored the session time-box | **Fixed** (`not_after` check). Inactivity can lag by up to one token lifetime; documented |
+| L2 | Low | `current_learner()` ignored the session time-box | **Partly fixed.** A `not_after` check was added, but on staging (29 Oct 2026) magic-link sessions have no `not_after`, so the time-box and the idle timeout are enforced by Supabase Auth at token refresh. An expired session can keep working for up to one access-token lifetime (1 hour). Accepted; documented in ASVS 7.3.1 and 7.3.2 |
 | L3 | Low | Sign-out ignored errors and could leave the cookies in place | **Fixed.** Cookies are always cleared; failures are logged |
 | L4 | Low | `next` in the email link wasn't URL-encoded | **Fixed** (`urlquery`) |
 | L5 | Low | Response timing reveals existing accounts | **Mitigated** with a 1.5-second floor. The residual is accepted (ASVS 6.3.8 is Level 3) |
