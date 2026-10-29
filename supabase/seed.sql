@@ -27,3 +27,9 @@ from (values
   ('parts-and-accessories', 'remotes-and-control-boxes', 'Remotes and control boxes', null, false, 1)
 ) as l (category_slug, slug, title, product_name, is_core, sort_order)
 join public.categories c on c.slug = l.category_slug;
+
+-- QR links. scout-pro-10k-v3 matches the PRD 5.1 example; test-slug is for the Phase 2 check.
+insert into public.qr_links (slug, lesson_id)
+select v.slug, l.id
+from (values ('scout-pro-10k-v3'), ('test-slug')) as v (slug)
+join public.lessons l on l.slug = 'scout-pro-10k-v3';

@@ -39,6 +39,12 @@ describe('contentSecurityPolicy', () => {
     expect(csp).toContain("default-src 'self'")
   })
 
+  it('allows frames from the Vimeo player only', () => {
+    const csp = contentSecurityPolicy(false)
+    expect(csp).toContain('frame-src https://player.vimeo.com;')
+    expect(csp).not.toContain("frame-src 'none'")
+  })
+
   it("never allows 'unsafe-eval' in production", () => {
     expect(contentSecurityPolicy(false)).not.toContain('unsafe-eval')
   })

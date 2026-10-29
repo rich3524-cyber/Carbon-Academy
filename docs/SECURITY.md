@@ -70,6 +70,12 @@ Every phase follows these. Each rule cites its source in the framework.
 - Use supabase-js query builders and parameterised SQL in database functions. Never build SQL by string interpolation, including in `execute` or `format()` without `%L` or `%I`.
 - Allowlist sort and filter identifiers.
 - Neutralise formula injection (values starting with `=`, `+`, `-` or `@`) in every CSV export (Phase 6 reports).
+- Database functions callable with the publishable key use `security definer` only when they must write on the visitor's behalf (like `log_qr_scan`). Each one:
+  - sets `search_path = ''`
+  - validates every argument
+  - writes only explicit columns
+  - has `execute` granted only to the roles that need it, and revoked from `public`
+  - is covered by DB tests, including a mutation check on any limit it enforces
 
 **Output (control 07)**
 - Never use `dangerouslySetInnerHTML`.
