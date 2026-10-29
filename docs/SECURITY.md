@@ -104,6 +104,8 @@ Every phase follows these. Each rule cites its source in the framework.
 - Secret, dependency and SAST scans run on every PR. A Critical finding blocks the merge.
 - The protected `main` branch needs a PR with at least one reviewer.
 - Subscribe to Next.js, React and Supabase security advisories. Framework vulnerabilities are treated as Critical: patch within 48 hours (section 8).
+- **Dependabot and `npm audit` don't see the React that Next.js bundles.** Assess every Next.js and React advisory by hand, and record it in `docs/security/VULNERABILITIES.md`.
+- Dependabot waits 14 days before proposing routine updates; security updates come straight away. Action updates are grouped, and the TypeScript and `@types/node` major versions are ignored.
 
 **Images (section 4)**
 - `images.remotePatterns` lists exact hosts only (for example Vimeo thumbnails), never wildcards.
