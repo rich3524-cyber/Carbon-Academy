@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contentSecurityPolicy, securityHeaders } from './security-headers'
+import { contentSecurityPolicy, publicHeaderSource, securityHeaders } from './security-headers'
 
 const header = (name: string, dev = false) =>
   securityHeaders(dev).find((h) => h.key === name)?.value
@@ -33,7 +33,7 @@ describe('contentSecurityPolicy', () => {
   it('locks down objects, base URI, forms and framing', () => {
     const csp = contentSecurityPolicy(false)
     expect(csp).toContain("object-src 'none'")
-    expect(csp).toContain("base-uri 'self'")
+    expect(csp).toContain("base-uri 'none'")
     expect(csp).toContain("form-action 'self'")
     expect(csp).toContain("frame-ancestors 'none'")
     expect(csp).toContain("default-src 'self'")
@@ -51,5 +51,13 @@ describe('contentSecurityPolicy', () => {
 
   it("allows 'unsafe-eval' only in development, for fast refresh", () => {
     expect(contentSecurityPolicy(true)).toContain("'unsafe-eval'")
+  })
+})
+
+describe('publicHeaderSource', () => {
+  // A Next.js source pattern isn't a plain regex. The real headers are checked per path in
+  // Phase 3 Task 18; this pins the pattern so a change is deliberate.
+  it('excludes account pages, which get the nonce CSP from proxy.ts instead', () => {
+    expect(publicHeaderSource).toBe('/((?!dashboard|sign-in|join|auth).*)')
   })
 })
