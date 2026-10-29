@@ -9,7 +9,7 @@ export function FormMessage({
   return (
     <div
       role={tone === 'success' ? 'status' : 'alert'}
-      className={`border-l-4 bg-white p-4 ${tone === 'success' ? 'border-carbon-cyan' : 'border-error-red'}`}
+      className={`rounded-field border-l-4 bg-white p-4 ${tone === 'success' ? 'border-carbon-cyan' : 'border-error-red'}`}
     >
       {children}
     </div>

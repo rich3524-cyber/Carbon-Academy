@@ -6,7 +6,8 @@ type Props = { label: string; name: string; error?: string; hint?: string } & Om
 >
 
 /**
- * Brand form field (p.49): Dust background, square corners, visible focus. Errors use
+ * Form field matching the website (BRAND.md Website style): white with a Concrete border
+ * (3.2:1 against white, WCAG 1.4.11) and field corners, visible focus. Errors use
  * error-red text on white below the field with a 2 px border and an icon, so colour is
  * never the only signal (BRAND.md form errors, WCAG 1.4.1).
  */
@@ -28,8 +29,8 @@ export function Field({ label, name, error, hint, ...input }: Props) {
         name={name}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
-        className={`min-h-11 bg-dust px-4 py-3 text-body outline-offset-2 focus:outline-2 focus:outline-carbon-black ${
-          error ? 'border-2 border-error-red' : 'border-2 border-dust'
+        className={`min-h-11 rounded-field bg-white px-4 py-3 text-body outline-offset-2 focus:outline-2 focus:outline-carbon-black ${
+          error ? 'border-2 border-error-red' : 'border-2 border-concrete'
         }`}
         {...input}
       />

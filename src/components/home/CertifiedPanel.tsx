@@ -4,8 +4,11 @@ import { Container } from '@/components/ui/Container'
 // Draft copy, awaiting Rich's approval (brand p.69).
 export function CertifiedPanel({ storeThreshold }: { storeThreshold: number }) {
   return (
-    <section data-surface="dark" className="bg-gunmetal text-white">
-      <Container className="py-12 md:py-16">
+    <Container>
+      <section
+        data-surface="dark"
+        className="rounded-card bg-gunmetal px-6 py-10 text-white md:px-12 md:py-14"
+      >
         <h2 className="text-h2 md:text-h2-lg">Get Carbon Certified</h2>
         <p className="mt-4 max-w-prose">
           Store staff who pass every core lesson become Carbon Certified. Stores with{' '}
@@ -16,7 +19,7 @@ export function CertifiedPanel({ storeThreshold }: { storeThreshold: number }) {
             How it works
           </ButtonLink>
         </div>
-      </Container>
-    </section>
+      </section>
+    </Container>
   )
 }

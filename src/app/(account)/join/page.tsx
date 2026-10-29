@@ -24,7 +24,7 @@ export default async function JoinPage() {
         <div className="mt-8">
           <StoreCodeForm label="New store code" />
         </div>
-        <div className="mt-10 border-t-2 border-dust pt-6">
+        <div className="mt-10 border-t border-concrete pt-6">
           <SignOutButton />
         </div>
       </Container>
@@ -42,7 +42,7 @@ export default async function JoinPage() {
           <StoreCodeForm />
         </div>
       </section>
-      <section className="mt-12 border-t-2 border-dust pt-8" aria-labelledby="customer">
+      <section className="mt-12 border-t border-concrete pt-8" aria-labelledby="customer">
         <h2 id="customer" className="text-h3">
           No store code? Join as a customer
         </h2>

@@ -38,7 +38,11 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <section aria-labelledby="certified" className="mt-10 bg-carbon-black p-6 text-white md:p-8">
+      <section
+        aria-labelledby="certified"
+        data-surface="dark"
+        className="mt-10 rounded-card bg-carbon-black p-6 text-white md:p-8"
+      >
         <h2 id="certified" className="text-h2">
           Carbon Certified progress
         </h2>
@@ -69,7 +73,7 @@ export default async function DashboardPage() {
         ) : (
           <ul className="mt-4 flex flex-col gap-4">
             {inProgress.map((lesson) => (
-              <li key={lesson.href} className="bg-dust p-4">
+              <li key={lesson.href} className="rounded-card bg-white p-5">
                 <Link className="link font-bold" href={lesson.href}>
                   {lesson.title}
                 </Link>
@@ -90,7 +94,7 @@ export default async function DashboardPage() {
           <h2 id="completed" className="text-h2">
             Completed
           </h2>
-          <ul className="mt-4 flex flex-col gap-2">
+          <ul className="mt-4 flex flex-col gap-3 rounded-card bg-white p-5">
             {completed.map((lesson) => (
               <li key={lesson.href} className="flex items-center gap-3">
                 <svg
