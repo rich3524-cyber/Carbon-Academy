@@ -62,7 +62,7 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
 - [x] Second Supabase project for staging and deploy previews (Sydney region)
   - `Carbon-Academy-Staging`, ref `naxngnrzjpdqvuphgbht`, URL `https://naxngnrzjpdqvuphgbht.supabase.co`, created 29 October 2026. Schema and seed applied; RLS and security advisor verified
   - In the Into The Wild Marketing organisation for now (US$10/month), under security exception EX-01 in `docs/security/EVIDENCE.md`
-- [ ] Carbon Offroad Supabase organisation, with both projects transferred into it. **Must happen before Phase 3** (exception EX-01 expiry)
+- [ ] Carbon Offroad Supabase organisation, with both projects transferred into it. **Deferred (EX-01 extended, 29 Oct 2026):** it must happen before the first real store or learner is invited, and before the Phase 7 release gate. Until then, production sign-ups stay off and testing uses fictional accounts only
 - [ ] Netlify password protection on non-production deploys
 - [ ] Monitored security contact mailbox for `security.txt`
 - [ ] Separate named GitHub account for Claude Code's pull requests, so Rich can review and approve them
@@ -160,6 +160,7 @@ Everything in Carbon Offroad's name, using a shared Carbon email (e.g. `admin@ca
   - `Cache-Control: private, no-store` on authenticated pages
   - session cookie attributes reviewed
   - the ASVS Level 2 register started
+  - while exception EX-01 is open: Supabase "Allow new users to sign up" stays **off** on production and staging; tests create fictional `@example.com` users with the admin key; sign-ups are switched on only after the Supabase projects move to the Carbon Offroad organisation
 
 **Done when:**
 - New user joins via a store code, receives the magic link, lands on the dashboard linked to the right store

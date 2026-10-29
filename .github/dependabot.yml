@@ -1,14 +1,32 @@
+# Security framework control 13. Security updates ignore the cooldown and arrive at once;
+# routine version updates wait 14 days, matching the "release at least two weeks old" rule
+# used for pinned CI actions.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 14
     open-pull-requests-limit: 10
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 breaks linting (typescript-eslint doesn't support it yet). Revisit when it does.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      # Types must match the Node.js version in .nvmrc (24), not the newest Node.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      # codeql-action init and analyze must always move together, or the CodeQL job fails.
+      actions:
+        patterns: ['*']
