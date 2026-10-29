@@ -199,6 +199,27 @@ Still needed from the asset library (p.68). Request them, never recreate them:
 - Icon: `favicon / carbon compact logo no text.png` and `...inverted.png`. An SVG icon if one exists. Used to make `favicon-32.png`, `apple-touch-icon-180.png` (p.45) and `icon.svg`.
 - QR master: `qr codes / carbonoffroad QR.svg`, for the house QR style.
 
+## Website style [Approved by Rich, 29 October 2026]
+
+**The Academy matches carbonoffroad.com.au.** Online, this section overrides the guideline rules for square corners (p.32, p.45), cyan at about 10% and never as a large background (p.24, p.25), the logo top left on every screen size (p.21), Dust form fields (p.25) and Eurostile with an Arial fallback (p.29). Print, PDF certificates, email and video still follow the guidelines.
+
+The values below were measured from the website's Shopify theme settings and the live site on 29 Oct 2026. The theme ("King" by Shine Dezign Infonet) is licensed to the store only, so we rebuild the look in our own components and copy none of its code, styles or icons.
+
+| Element | Website style in the Academy |
+|---|---|
+| Font | **Saira**, self-hosted with `next/font` (SIL Open Font Licence; browsers make no Google requests). Headings weight 800, uppercase, letter-spacing -0.02em. Body weight 400 at **16 px** (the website uses 14 px; we keep the accessible minimum). Arial is the fallback |
+| Page background | `page` `#EEEEEE`, with white cards and panels on it |
+| Top bar | Carbon Black. Social icons and the sales email on the left; one centred announcement in white, bold and uppercase |
+| Header | Full-width Carbon Cyan. White-on-black logo badge on the left (approved on cyan, p.21); bold uppercase **black** menu; account icon and "Shop" link on the right. On phones: a menu button on the left and the logo centred, as on the website |
+| Footer | Full-width Carbon Cyan with **black** text: white on cyan is 2.9:1 and fails WCAG AA, while black on cyan is 6.4:1 (p.25). Logo badge, company details, links, contact and social icons |
+| Buttons | **Pills** (`rounded-pill`). Primary: cyan with black bold uppercase text. Secondary: black outline. Minimum height 44 px |
+| Cards | White, `rounded-card` (25 px) |
+| Form fields | White, `rounded-field` (8 px), Concrete border. Error red as in Form errors |
+| Small tiles (badges, progress bars, video frames) | `rounded-tile` (10 px) or `rounded-pill` |
+| Not used | The website's gradients, 14 px body text, red sale highlights, cart, search, payment icons and newsletter |
+
+Only the named radius tokens are allowed; Tailwind's default `rounded-*` classes are not (`tests/brand/guard.test.ts`).
+
 ## UI components
 
 ### Buttons (p.32, p.45)
