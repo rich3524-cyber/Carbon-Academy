@@ -93,6 +93,8 @@ Run on staging after the Phase 2 migration, 29 October 2026.
 |---|---|---|
 | `rls_enabled_no_policy` on `qr_links`, `qr_scans` | INFO | **Intended.** Deny-all: no role reads or writes these tables directly. |
 | `anon_security_definer_function_executable` and `authenticated_security_definer_function_executable` on `log_qr_scan` | WARN | **Intended, by design.** The public `/go` route must record scans, and this function is the narrowest write path: one validated, capped insert with an empty `search_path` (T-01, T-02). The alternatives are worse: granting anon direct insert on `qr_scans` (more surface), or using the secret key on every public `/go` request. Re-review whenever the function changes. |
+| **Phase 4, staging, 29 Oct 2026:** `rls_enabled_no_policy` on `questions`, `answer_options` | INFO | **Intended.** Deny-all: learners never read these tables; `get_quiz` and `submit_quiz` read them as the owner (T-30). |
+| **Phase 4:** `anon_security_definer_function_executable` on `quiz_status`; `authenticated_security_definer_function_executable` on `quiz_status`, `get_quiz`, `submit_quiz`, `lessons_with_quiz` | WARN | **Intended, by design.** These are the only quiz entry points. Each starts from `current_learner()`, takes no user ID and never returns `is_correct`. `quiz_status` tells anon only that a quiz exists. The helpers (`quiz_ready`, `quiz_unlocked`, `setting_int`) are not flagged because they are not executable; a privilege query on staging confirmed it, and that no role can select `answer_options`, `questions` or `quiz_attempts.answers`. |
 
 ## Phase 3 review (Task 1 gate)
 
