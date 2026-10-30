@@ -4,14 +4,17 @@ import { useActionState } from 'react'
 import { FormMessage } from '@/components/forms/FormMessage'
 import { Button } from '@/components/ui/Button'
 import { confirmEnrol, startEnrol } from '@/lib/admin/actions/mfa'
+import type { Factor } from '@/lib/admin/factors'
 import { initialAdminState } from '@/lib/admin/form'
 import { AdminField, AdminForm } from './AdminForm'
+import { StepUpFields } from './StepUpFields'
 
 /**
  * Sets up an authenticator app (decision 2). The QR code is SVG made on the server from the
- * otpauth address Supabase returns, so no image host or CSP change is needed.
+ * otpauth address Supabase returns, so no image host or CSP change is needed. Adding a backup
+ * changes the MFA factors, so it needs a code from an existing one first (control 03).
  */
-export function EnrolPanel({ startLabel }: { startLabel: string }) {
+export function EnrolPanel({ startLabel, factors }: { startLabel: string; factors?: Factor[] }) {
   const [state, start, starting] = useActionState(startEnrol, initialAdminState)
   const setup = state.payload
 
@@ -21,6 +24,7 @@ export function EnrolPanel({ startLabel }: { startLabel: string }) {
         {state.status === 'error' && state.message && (
           <FormMessage tone="problem">{state.message}</FormMessage>
         )}
+        {factors && <StepUpFields factors={factors} />}
         <div>
           <Button type="submit" disabled={starting}>
             {starting ? 'Working…' : startLabel}

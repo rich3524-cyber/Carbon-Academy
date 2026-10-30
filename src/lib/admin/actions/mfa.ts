@@ -21,11 +21,19 @@ const WRONG_CODE: AdminFormState = {
   },
 }
 
-/** Starts enrolling a TOTP factor: returns the QR code and setup key to show once. */
-export async function startEnrol(): Promise<AdminFormState> {
+/**
+ * Starts enrolling a TOTP factor: returns the QR code and setup key to show once. The first
+ * factor needs no code (there's nothing to ask for yet); a backup is a change to the MFA
+ * factors, so it needs a fresh code from an existing one (control 03 step-up).
+ */
+export async function startEnrol(
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
   const access = await requireAdminForMfa()
   // An admin who already has a factor must verify it first; Supabase would refuse anyway.
   if (access === 'verify') redirect('/admin/mfa')
+  if (access === 'ok' && !(await verifyStepUp(formData))) return STEP_UP_FAILED
   const supabase = await createSessionClient()
   const factors = await getMyFactors()
   for (const factor of factors.filter((f) => !f.verified)) {

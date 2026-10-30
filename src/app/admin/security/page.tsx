@@ -50,7 +50,7 @@ export default async function AdminSecurityPage({ searchParams }: PageProps<'/ad
           Use a different phone or app from your first one, so losing one device doesn&apos;t lock
           you out.
         </p>
-        <EnrolPanel startLabel="Add backup authenticator" />
+        <EnrolPanel startLabel="Add backup authenticator" factors={factors} />
       </AdminSection>
     </AdminPage>
   )

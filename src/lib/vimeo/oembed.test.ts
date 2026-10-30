@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
+vi.mock('@/lib/site', () => ({ siteUrl: () => 'https://academy.test' }))
 const { vimeoDuration } = await import('./oembed')
 
 const respond = (status: number, body: unknown) =>
@@ -17,6 +18,8 @@ describe('vimeoDuration (decision 8)', () => {
     expect(String(fetchSpy.mock.calls[0]?.[0])).toBe(
       'https://vimeo.com/api/oembed.json?url=https%3A%2F%2Fvimeo.com%2F76979871',
     )
+    // Domain-restricted videos need our site as the Referer.
+    expect(fetchSpy.mock.calls[0]?.[1]?.headers).toEqual({ Referer: 'https://academy.test/' })
   })
 
   it("makes no request for an ID that isn't numeric", async () => {

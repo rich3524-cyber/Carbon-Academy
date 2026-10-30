@@ -8,6 +8,7 @@ const vimeoDuration = vi.fn()
 const updateTag = vi.fn()
 const listFactors = vi.fn()
 const unenroll = vi.fn()
+const enroll = vi.fn()
 vi.mock('server-only', () => ({}))
 vi.mock('next/cache', () => ({ updateTag }))
 vi.mock('next/navigation', () => ({
@@ -22,7 +23,7 @@ vi.mock('@/lib/vimeo/oembed', () => ({ vimeoDuration }))
 vi.mock('@/lib/log', () => ({ logSecurityEvent: vi.fn() }))
 vi.mock('@/lib/supabase/server', () => ({
   createSessionClient: async () => ({
-    auth: { mfa: { listFactors, unenroll }, refreshSession: vi.fn() },
+    auth: { mfa: { listFactors, unenroll, enroll }, refreshSession: vi.fn() },
   }),
 }))
 
@@ -30,7 +31,7 @@ const { saveLesson } = await import('./content')
 const { regenerateStoreCode } = await import('./stores')
 const { deleteLearner, setRole, searchLearners } = await import('./learners')
 const { saveSettings } = await import('./settings')
-const { removeFactor } = await import('./mfa')
+const { removeFactor, startEnrol } = await import('./mfa')
 
 const ID = '2b1f0d5e-3c4a-4b6d-9e8f-0a1b2c3d4e5f'
 const OTHER = '3c2e1f6a-4d5b-4c7e-8f9a-1b2c3d4e5f6a'
@@ -218,5 +219,31 @@ describe('removeFactor (decision 3)', () => {
     expect(verifyStepUp).toHaveBeenCalled()
     expect(unenroll).toHaveBeenCalledWith({ factorId: OTHER })
     expect(result.status).toBe('saved')
+  })
+})
+
+describe('startEnrol (control 03: adding a factor is an MFA change)', () => {
+  it('needs a fresh code before adding a backup factor', async () => {
+    requireAdmin.mockResolvedValue('ok')
+    verifyStepUp.mockResolvedValue(false)
+    const result = await startEnrol(idle, form({}))
+    expect(result.message).toMatch(/didn't work or has expired/)
+    expect(enroll).not.toHaveBeenCalled()
+  })
+
+  it('asks no code for the first factor, when there is nothing to ask for yet', async () => {
+    requireAdmin.mockResolvedValue('enrol')
+    listFactors.mockResolvedValue({ data: { all: [] }, error: null })
+    enroll.mockResolvedValue({
+      data: {
+        id: ID,
+        totp: { secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/x?secret=JBSWY3DPEHPK3PXP' },
+      },
+      error: null,
+    })
+    const result = await startEnrol(idle, form({}))
+    expect(verifyStepUp).not.toHaveBeenCalled()
+    expect(result.payload?.factorId).toBe(ID)
+    expect(result.payload?.qr?.startsWith('<svg')).toBe(true)
   })
 })
