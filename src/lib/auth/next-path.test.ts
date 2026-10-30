@@ -11,6 +11,7 @@ describe('safeNextPath', () => {
     ['/lessons/winches/scout-pro-10k-v3', '/lessons/winches/scout-pro-10k-v3'],
     [`${SITE}/join/TST-ROB-7K2Q9MXH`, '/join/TST-ROB-7K2Q9MXH'],
     ['/dashboard?utm_source=x#top', '/dashboard'],
+    ['/admin', '/admin'],
   ])('allows %s', (input, expected) => {
     expect(safeNextPath(input, SITE)).toBe(expected)
   })
@@ -26,7 +27,8 @@ describe('safeNextPath', () => {
     '/auth/confirm',
     '/sign-in',
     '/join/../../etc',
-    '/admin',
+    '/admin/learners',
+    '/administrator',
   ])('falls back to /dashboard for %j', (input) => {
     expect(safeNextPath(input, SITE)).toBe('/dashboard')
   })
