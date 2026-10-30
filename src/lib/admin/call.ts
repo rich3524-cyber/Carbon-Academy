@@ -7,6 +7,14 @@ import type { Database } from '@/types/database'
 type Functions = Database['public']['Functions']
 export type AdminFunction = Extract<keyof Functions, `admin_${string}`>
 
+/**
+ * Generated types mark every argument as required and non-null, but the functions take null for
+ * "none" (a new record, no store). Every argument is still sent, so PostgREST finds the function.
+ */
+export type AdminArgs<F extends AdminFunction> = {
+  [K in keyof Functions[F]['Args']]: Functions[F]['Args'][K] | null
+}
+
 /** What an admin form can show. Each maps to one plain message in the UI. */
 export type AdminError =
   'step_up' | 'refused' | 'blocked_publish' | 'invalid' | 'duplicate' | 'failed'
@@ -32,7 +40,7 @@ export function adminError(code: string | undefined): AdminError {
  */
 export async function callAdmin<F extends AdminFunction>(
   fn: F,
-  args: Functions[F]['Args'],
+  args: AdminArgs<F>,
 ): Promise<AdminResult<Functions[F]['Returns']>> {
   const supabase = await createSessionClient()
   const { data, error } = await supabase.rpc(fn, args as never)
@@ -45,7 +53,7 @@ export async function callAdmin<F extends AdminFunction>(
 /** For pages: the data, or a thrown error for the error boundary (never shown in detail). */
 export async function readAdmin<F extends AdminFunction>(
   fn: F,
-  args: Functions[F]['Args'],
+  args: AdminArgs<F>,
 ): Promise<Functions[F]['Returns']> {
   const result = await callAdmin(fn, args)
   if (!result.ok) throw new Error(`Admin read failed: ${fn}`)
