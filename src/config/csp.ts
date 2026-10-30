@@ -3,7 +3,8 @@
  * areas). Sent as Report-Only in Phase 3, enforced at the Phase 7 gate (decision 10).
  * Styles keep 'unsafe-inline' for React style attributes, as on public pages.
  */
-export function nonceCsp(nonce: string, dev: boolean): string {
+/** `vimeo`: admin lesson pages show a preview player (Phase 6 decision 8); nowhere else. */
+export function nonceCsp(nonce: string, dev: boolean, { vimeo = false } = {}): string {
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
     'script-src': [
@@ -16,7 +17,7 @@ export function nonceCsp(nonce: string, dev: boolean): string {
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'"],
     'connect-src': ["'self'", ...(dev ? ['ws:'] : [])],
-    'frame-src': ["'none'"],
+    'frame-src': vimeo ? ['https://player.vimeo.com'] : ["'none'"],
     'object-src': ["'none'"],
     'base-uri': ["'none'"],
     'form-action': ["'self'"],
@@ -28,7 +29,7 @@ export function nonceCsp(nonce: string, dev: boolean): string {
 }
 
 /** Path prefixes rendered per request with the nonce CSP and no-store. Keep in sync with proxy.ts. */
-export const ACCOUNT_PATHS = ['/dashboard', '/sign-in', '/join', '/auth']
+export const ACCOUNT_PATHS = ['/dashboard', '/sign-in', '/join', '/auth', '/admin']
 
 export function isAccountPath(pathname: string): boolean {
   return ACCOUNT_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))

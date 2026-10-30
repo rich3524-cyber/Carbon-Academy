@@ -22,25 +22,38 @@ describe('nonceCsp (control 11, Tier C authenticated areas)', () => {
     }
   })
 
+  it('allows the Vimeo player frame only when asked (admin lesson pages)', () => {
+    expect(nonceCsp('n', false, { vimeo: true })).toContain('frame-src https://player.vimeo.com;')
+    expect(nonceCsp('n', false, { vimeo: false })).toContain("frame-src 'none'")
+  })
+
   it('adds unsafe-eval in development only (React debugging)', () => {
     expect(nonceCsp('n', true)).toContain("'unsafe-eval'")
   })
 })
 
 describe('isAccountPath', () => {
-  it.each(['/dashboard', '/sign-in', '/join', '/join/TST-ROB-7K2Q9MXH', '/auth/confirm'])(
+  it.each([
+    '/dashboard',
+    '/sign-in',
+    '/join',
+    '/join/TST-ROB-7K2Q9MXH',
+    '/auth/confirm',
+    '/admin',
+    '/admin/learners/x',
+  ])(
     'includes %s',
     (path) => {
       expect(isAccountPath(path)).toBe(true)
     },
   )
-  it.each(['/', '/lessons', '/lessons/winches', '/certified', '/go/x', '/joiner', '/sign-in-help'])(
+  it.each(['/', '/lessons', '/lessons/winches', '/certified', '/go/x', '/joiner', '/sign-in-help', '/administrator'])(
     'excludes %s',
     (path) => {
       expect(isAccountPath(path)).toBe(false)
     },
   )
   it('matches the proxy matcher list', () => {
-    expect(ACCOUNT_PATHS).toEqual(['/dashboard', '/sign-in', '/join', '/auth'])
+    expect(ACCOUNT_PATHS).toEqual(['/dashboard', '/sign-in', '/join', '/auth', '/admin'])
   })
 })

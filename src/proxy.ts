@@ -20,7 +20,9 @@ export async function proxy(request: NextRequest) {
   // (the response isn't HTML, and the public CSP already covers lesson pages).
   const isAction = request.headers.has('next-action')
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
-  const csp = nonceCsp(nonce, process.env.NODE_ENV === 'development')
+  const csp = nonceCsp(nonce, process.env.NODE_ENV === 'development', {
+    vimeo: request.nextUrl.pathname.startsWith('/admin/lessons/'),
+  })
   const requestHeaders = new Headers(request.headers)
   if (!isAction) requestHeaders.set(CSP_REQUEST_HEADER, csp)
 
@@ -76,6 +78,9 @@ export const config = {
     '/join',
     '/join/:path*',
     '/auth/:path*',
+    // Phase 6: the admin area. requireAdmin() on every page and action is the access check.
+    '/admin',
+    '/admin/:path*',
     // Progress Server Actions POST to lesson pages. Running the proxy for those requests only
     // gives them a managed session refresh and no-store, and leaves the static lesson pages
     // alone (review finding L7, T-18).
