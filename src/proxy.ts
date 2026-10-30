@@ -6,6 +6,8 @@ import { authCookieOptions } from '@/lib/supabase/cookies'
 // Header Next.js reads to find the nonce (confirmed by the Task 2 spike).
 const CSP_REQUEST_HEADER = 'content-security-policy-report-only'
 
+const isAdminPath = (pathname: string) => pathname === '/admin' || pathname.startsWith('/admin/')
+
 /**
  * Account pages, plus Server Action posts to lesson pages (matcher below):
  * 1. Refresh the Supabase session so Server Components see a valid token. They can't
@@ -59,6 +61,41 @@ export async function proxy(request: NextRequest) {
     for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie)
     redirect.headers.set('Cache-Control', 'private, no-store')
     return redirect
+  }
+
+  // Phase 6: a real 404 status for /admin. Pages stream, so the notFound() in each page's
+  // requireAdmin() can only swap the content, not the status already sent. This is still only a
+  // convenience: every admin page, action and database function checks access itself.
+  if (isAdminPath(request.nextUrl.pathname)) {
+    const { data: access } = data?.claims ? await supabase.rpc('admin_access') : { data: null }
+    // An admin without MFA in this session goes to /admin/mfa with a real redirect too.
+    if ((access === 'enrol' || access === 'verify') && !isAction) {
+      if (request.nextUrl.pathname !== '/admin/mfa') {
+        const mfa = request.nextUrl.clone()
+        mfa.pathname = '/admin/mfa'
+        mfa.search = ''
+        const redirect = NextResponse.redirect(mfa)
+        for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie)
+        redirect.headers.set('Cache-Control', 'private, no-store')
+        return redirect
+      }
+    }
+    if (access !== 'ok' && access !== 'enrol' && access !== 'verify') {
+      if (isAction) {
+        return new NextResponse(null, {
+          status: 404,
+          headers: { 'Cache-Control': 'private, no-store' },
+        })
+      }
+      // Rewriting to a path with no page renders the site's normal 404 page, with a 404 status.
+      const notFound = NextResponse.rewrite(new URL('/404-not-found', request.url), {
+        request: { headers: requestHeaders },
+      })
+      for (const cookie of response.cookies.getAll()) notFound.cookies.set(cookie)
+      notFound.headers.set('Content-Security-Policy-Report-Only', csp)
+      notFound.headers.set('Cache-Control', 'private, no-store')
+      return notFound
+    }
   }
 
   if (!isAction) response.headers.set('Content-Security-Policy-Report-Only', csp)
