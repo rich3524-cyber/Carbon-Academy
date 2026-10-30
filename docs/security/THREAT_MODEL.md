@@ -1,4 +1,4 @@
-# Threat model (STRIDE, security framework section 5)
+# Threat model (STRIDE, security framework section 5)Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026), residual accepted |Verified (local, 30 Oct 2026), residual accepted |
 
 Tier C: documented and independently reviewed before Phase 3 (accounts). Phase 2 entries come first, then Phase 3 (accounts and progress), added 29 October 2026 before any Phase 3 code.
 

@@ -1406,3 +1406,20 @@ export function reportFilename(name: string, now = new Date()): string {
 | "Done when": everything in the PRD admin section in the UI | Task 18 run through this table |
 | "Done when": CSVs open in Excel | Tasks 18, 19 |
 | Plain, same tokens and components | Decision 14; Task 10; brand guard tests unchanged |
+
+---
+
+## Changes made during the build (30 Oct 2026)
+
+Recorded so the plan matches what was built. None changes an approved decision.
+
+1. **Quiz options are 3 or 4, not 2 to 5.** The existing `quiz_ready()` rule (Phase 4) needs 3 or 4 options, so the editor, Zod and `admin_save_quiz` use that.
+2. **Renewal window starts at 1 day,** because `setting_int()` already clamps it to at least 1.
+3. **Learner search posts its query** instead of a GET form, so names and emails never sit in a URL or a request log.
+4. **The proxy gives `/admin` real 404 and redirect statuses.** Pages stream, so `notFound()` inside a page swaps the content but can't change the 200 already sent. The proxy asks `admin_access()` first. It's a convenience only: every page, action and function still checks.
+5. **Adding a backup authenticator needs step-up.** Control 03 lists "changing MFA or recovery factors"; the first factor needs none.
+6. **Vimeo length lookup sends our site as the Referer,** which domain-restricted videos need.
+7. **`/admin` is allowed as a sign-in landing page** (`safeNextPath`), so admins land there from the magic link.
+8. **The admin navigation is drawn by each page after the access check,** not by the layout, so a refused visitor sees the site's normal 404 page and nothing of the admin area.
+9. **Mutation 1 (no aal check) was first missed,** because the 8-hour TOTP check covered it. A new refused caller (fresh TOTP, aal1 session) now proves the aal check on its own.
+10. **The settings URL check had a regex repeat count over Postgres's limit of 255.** Fixed and tested before anything was applied remotely.
