@@ -1237,7 +1237,7 @@ export async function vimeoDuration(id: string): Promise<number | null> {
 ```ts
 /** OWASP CSV injection: a cell Excel would read as a formula gets a leading apostrophe. */
 export function neutralise(value: string): string {
-  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
+  return /^[=+\-@\t\r\0]/.test(value) ? `'${value}` : value
 }
 
 export type Column<T> = { header: string; value: (row: T) => string | number | boolean | null }
