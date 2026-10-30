@@ -41,18 +41,21 @@ describe('isAccountPath', () => {
     '/auth/confirm',
     '/admin',
     '/admin/learners/x',
-  ])(
-    'includes %s',
-    (path) => {
-      expect(isAccountPath(path)).toBe(true)
-    },
-  )
-  it.each(['/', '/lessons', '/lessons/winches', '/certified', '/go/x', '/joiner', '/sign-in-help', '/administrator'])(
-    'excludes %s',
-    (path) => {
-      expect(isAccountPath(path)).toBe(false)
-    },
-  )
+  ])('includes %s', (path) => {
+    expect(isAccountPath(path)).toBe(true)
+  })
+  it.each([
+    '/',
+    '/lessons',
+    '/lessons/winches',
+    '/certified',
+    '/go/x',
+    '/joiner',
+    '/sign-in-help',
+    '/administrator',
+  ])('excludes %s', (path) => {
+    expect(isAccountPath(path)).toBe(false)
+  })
   it('matches the proxy matcher list', () => {
     expect(ACCOUNT_PATHS).toEqual(['/dashboard', '/sign-in', '/join', '/auth', '/admin'])
   })
