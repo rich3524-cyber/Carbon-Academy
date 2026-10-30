@@ -189,7 +189,7 @@ Both windows are fixed in code. They aren't editable settings, because settings 
 - This stops a delete from silently wiping learners' history through the cascades.
 
 **Quiz editor:**
-- One form per lesson: 1–5 questions, 2–5 options each, **exactly one correct option** (also enforced in the database).
+- One form per lesson: 1–5 questions, 3–4 options each (the existing `quiz_ready` rule), **exactly one correct option** (also enforced in the database).
 - The whole quiz saves in one transaction.
 - Saving replaces the questions. A learner who has the quiz open at that moment gets "please reload" on submit. That's acceptable for a rare edit.
 
@@ -256,7 +256,7 @@ Both windows are fixed in code. They aren't editable settings, because settings 
 | Pass mark | 50–100% |
 | Store certification threshold | 1–20 |
 | Certificate validity | 1–36 months |
-| Renewal window | 0–90 days |
+| Renewal window | 1–90 days (`setting_int` already clamps to at least 1) |
 | Quiz attempts per hour | 1–20 |
 | Warranty registration URL | `https://` only, existing check |
 | Company address (email footer) | Free text |
@@ -633,7 +633,7 @@ create trigger audit_admin_mfa_change
 | `admin_move_lesson(p_id uuid, p_direction integer)` | `void` | | Within its category, as for categories | `lesson_moved` |
 | `admin_delete_lesson(p_id uuid)` | `void` | | `CAA02` if any `lesson_progress`, `quiz_attempts` or `qr_links` row exists | `lesson_deleted`, `{title}` |
 | `admin_get_quiz(p_lesson uuid)` | `jsonb` | | `[{prompt, options: [{text, correct}]}]` in sort order. Admins only, so `correct` may appear here | |
-| `admin_save_quiz(p_lesson uuid, p_questions jsonb)` | `void` | | Lock the lesson row. 1–5 questions; prompt 1–300; 2–5 options; text 1–200; **exactly one `correct: true` per question**. Delete the lesson's questions (options cascade), then insert in order | `quiz_saved`, `{questions}` (the count only) |
+| `admin_save_quiz(p_lesson uuid, p_questions jsonb)` | `void` | | Lock the lesson row. 1–5 questions; prompt 1–300; 3–4 options (matching `quiz_ready`); text 1–200; **exactly one `correct: true` per question**. Delete the lesson's questions (options cascade), then insert in order | `quiz_saved`, `{questions}` (the count only) |
 | `admin_list_partners()` | table: id, name, type, parent_group, store_count | | | |
 | `admin_save_partner(p_id uuid, p_name text, p_type text, p_parent_group text)` | `uuid` | | Name 1–120; type `dealer`, `retailer`, `big box` or null; parent ≤ 120 | `partner_saved`, `{created}` |
 | `admin_list_stores(p_partner uuid)` | table: id, partner_id, partner_name, name, suburb, state, country, active, store_code, learners, certified_staff, is_certified | | Null `p_partner` returns all. Certified figures from `store_status` | |
