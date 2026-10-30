@@ -58,6 +58,6 @@ describe('publicHeaderSource', () => {
   // A Next.js source pattern isn't a plain regex. The real headers are checked per path in
   // Phase 3 Task 18; this pins the pattern so a change is deliberate.
   it('excludes account pages, which get the nonce CSP from proxy.ts instead', () => {
-    expect(publicHeaderSource).toBe('/((?!dashboard|sign-in|join|auth).*)')
+    expect(publicHeaderSource).toBe('/((?!dashboard|sign-in|join|auth|admin).*)')
   })
 })

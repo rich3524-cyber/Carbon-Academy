@@ -3,6 +3,8 @@ const ALLOWED = [
   /^\/dashboard$/,
   /^\/join\/[A-Z]{2,5}-[A-Z]{2,5}-[0-9A-HJKMNP-TV-Z]{8}$/,
   /^\/lessons(\/[a-z0-9-]+){0,2}$/,
+  // Phase 6: admins sign in with the same link. Non-admins get a 404 there (requireAdmin).
+  /^\/admin$/,
 ]
 
 export function safeNextPath(next: string | null | undefined, site: string): string {

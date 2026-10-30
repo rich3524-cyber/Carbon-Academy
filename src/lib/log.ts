@@ -15,6 +15,11 @@ type SecurityEvent =
   | 'certificate_pdf_denied'
   | 'verify_not_found'
   | 'email_skipped'
+  | 'admin_denied'
+  | 'admin_action_failed'
+  | 'admin_step_up_failed'
+  | 'admin_mfa_failed'
+  | 'admin_export'
 
 /**
  * IDs, error codes and pass or fail only. Never emails, names, form data, tokens, URLs or quiz
@@ -26,6 +31,9 @@ type Fields = {
   requestId?: string
   lessonId?: string
   outcome?: 'passed' | 'failed'
+  /** Phase 6: the admin function or report name. Never data from the request. */
+  action?: string
+  rows?: number
 }
 
 export function logSecurityEvent(event: SecurityEvent, fields: Fields = {}) {

@@ -51,15 +51,17 @@ describe('requestSignInLink (T-09)', () => {
     )
   })
 
-  it.each(['https://evil.example/x', '//evil.example/x', '/admin', '/lessons/../dashboard?x=1'])(
-    'falls back to the dashboard for next=%s (T-13)',
-    async (next) => {
-      await requestSignInLink(idle, form({ email: 'pat@example.com', website: '', next }))
-      expect(signInWithOtp.mock.calls[0]![0].options.emailRedirectTo).toBe(
-        'https://academy.example.com/dashboard',
-      )
-    },
-  )
+  it.each([
+    'https://evil.example/x',
+    '//evil.example/x',
+    '/admin/learners',
+    '/lessons/../dashboard?x=1',
+  ])('falls back to the dashboard for next=%s (T-13)', async (next) => {
+    await requestSignInLink(idle, form({ email: 'pat@example.com', website: '', next }))
+    expect(signInWithOtp.mock.calls[0]![0].options.emailRedirectTo).toBe(
+      'https://academy.example.com/dashboard',
+    )
+  })
 
   it('gives the same answer whether or not the account exists', async () => {
     const known = await requestSignInLink(idle, form({ email: 'a@example.com', website: '' }))

@@ -1,8 +1,9 @@
 import 'server-only'
-import { cacheLife } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 import { createPublicClient } from '@/lib/supabase/public'
 import { isVimeoId } from '@/lib/validation/urls'
 import { type LessonLink, neighbours } from './lesson-nav'
+import { CACHE_TAGS } from '@/lib/content/tags'
 
 export type LessonCardData = {
   slug: string
@@ -36,6 +37,7 @@ type CategoryRecord = Omit<LibraryCategory, 'lessons'> & { lessons: LessonRecord
 async function loadLibrary(): Promise<CategoryRecord[]> {
   'use cache'
   cacheLife('minutes')
+  cacheTag(CACHE_TAGS.content)
   const { data, error } = await createPublicClient()
     .from('categories')
     .select(

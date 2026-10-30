@@ -1,4 +1,4 @@
-# Threat model (STRIDE, security framework section 5)
+# Threat model (STRIDE, security framework section 5)Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026) |Verified (local, 30 Oct 2026), residual accepted |Verified (local, 30 Oct 2026), residual accepted |
 
 Tier C: documented and independently reviewed before Phase 3 (accounts). Phase 2 entries come first, then Phase 3 (accounts and progress), added 29 October 2026 before any Phase 3 code.
 
@@ -91,7 +91,19 @@ Trust boundaries are the browser to Netlify, Netlify to Supabase, and Supabase t
 | T-41 | `/certificates/[number]` | Downloading another learner's PDF | Information disclosure | Session required; RLS own rows; 404 for others; `private, no-store` | Mitigated |
 | T-42 | `/api/certified-stores` | Scraping, or other sites embedding the feed | DoS | Cached 1 h; 60 a minute per IP; store fields only; no CORS | Mitigated |
 | T-43 | Certificate email | Personal details or the certificate itself sent by email | Information disclosure | First name and a link only; nothing sent until D5 has a vetted provider | Mitigated |
-| T-44 | Revoked certificate | Auto-reissued on the next pass | Tampering | Issuing stops when the learner's latest certificate is revoked (Phase 6 decides reinstatement) | Mitigated |
+| T-44 | Revoked certificate | Auto-reissued on the next pass | Tampering | Issuing stops when the learner's latest certificate is revoked. Phase 6: only an admin with step-up can reinstate (audited) | Mitigated |
+| T-45 | `/admin` pages, actions, `admin_*` functions | A learner or anon reaches admin data or writes | EoP | `require_admin()` is the first statement of every admin function; no table grants; app 404 through `requireAdmin()`; guard test over every page, route and action; enumerated matrix test | Planned |
+| T-46 | Admin sign-in | A stolen magic link or `aal1` session used as an admin | Spoofing | `aal2` read from `auth.sessions` (not only the token); a TOTP within 8 hours on this session | Planned |
+| T-47 | High-risk admin actions | A hijacked `aal2` session revokes, exports, changes roles or settings | EoP | Step-up: a TOTP on this session within 5 minutes, checked inside the database function | Planned |
+| T-48 | Admin MFA factors | A hijacked `aal2` session swaps the admin's factors through the Auth API to keep access | Spoofing, Repudiation | Supabase needs `aal2` to enrol or remove a factor (proved locally, Phase 6 Task 1); a trigger on `auth.mfa_factors` audits every factor an admin verifies or loses, whatever the path; the app's own removal needs step-up. Residual: no alert email until D5 | Planned, residual accepted |
+| T-49 | Audit trail | An admin action leaves no record, or a record is changed | Repudiation | The audit row is written in the same transaction as the change; no update or delete grants for any API role; a test asserts one row per action | Planned |
+| T-50 | CSV exports | Formula injection through a learner, store or lesson name | Tampering | `neutralise()` on every text cell (OWASP CSV injection); unit tests for each trigger character | Planned |
+| T-51 | CSV exports | Bulk export of personal information | Information disclosure | Step-up; audit row with report and row count; no emails in any report; `private, no-store` | Planned |
+| T-52 | Admin roles | Two admins remove each other, or the last admin is removed or deactivated | DoS | Advisory lock before the access check; own role can't change; admins can't be deactivated or deleted while they're admins | Planned |
+| T-53 | Store codes | A code leaks through the audit log or app logs | Information disclosure | Never written to either; a test asserts the audit details hold no code | Planned |
+| T-54 | CSV export route | A cross-site POST triggers an export | CSRF | Same-origin check (`Sec-Fetch-Site`, or Origin against the request host); SameSite cookies; a step-up code in the body | Planned |
+| T-55 | Certification | An admin edit makes nobody certifiable (a core lesson published without a quiz) | DoS | `CAA03` guard on publishing a core lesson; a quiz save always leaves a ready quiz | Planned |
+| T-56 | MFA verify | Brute-forcing or replaying 6-digit codes | Spoofing | Supabase MFA verify limits; edge limit of 30 POSTs a minute per IP on `/admin/*`; `admin_mfa_failed` logged. Residual: Supabase accepts a code again within its time window (proved locally), so a code seen over the shoulder works for about a minute, but only with that admin's signed-in session too | Planned, residual accepted |
 
 ## Supabase security advisor review
 

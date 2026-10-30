@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { config as adminPosts } from '../../netlify/edge-functions/rate-limit-admin'
 import { config as auth } from '../../netlify/edge-functions/rate-limit-auth'
 import { config as feed } from '../../netlify/edge-functions/rate-limit-feed'
 import { config as join } from '../../netlify/edge-functions/rate-limit-join'
@@ -15,6 +16,8 @@ describe('edge rate limits', () => {
     // Phase 5, decision 13: certificate checks and the public stores feed (T-39, T-42).
     ['verify', verify, ['/verify/*'], 30],
     ['certified stores feed', feed, ['/api/certified-stores'], 60],
+    // Phase 6 (T-56): admin posts, including MFA codes.
+    ['admin posts', adminPosts, ['/admin', '/admin/*'], 30],
   ])('%s is limited per IP', (_name, config, paths, limit) => {
     expect(config.path).toEqual(paths)
     expect(config.rateLimit).toEqual({
@@ -22,5 +25,9 @@ describe('edge rate limits', () => {
       windowSize: 60,
       aggregateBy: ['ip', 'domain'],
     })
+  })
+
+  it('limits only admin form posts, not page views', () => {
+    expect(adminPosts.method).toEqual(['POST'])
   })
 })

@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "answer_options": {
+            "admin_audit_log": {
+                  Row: {
+                    "action": string,"actor_id": string,"actor_name": string,"at": string,"details": NonNullable<Json>,"id": number,"target_id": string | null,"target_type": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id": string,"actor_name": string,"at"?: string,"details"?: NonNullable<Json>,"id"?: never,"target_id"?: string | null,"target_type": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string,"actor_name"?: string,"at"?: string,"details"?: NonNullable<Json>,"id"?: never,"target_id"?: string | null,"target_type"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"answer_options": {
                   Row: {
                     "created_at": string,"id": string,"is_correct": boolean,"question_id": string,"text": string
                   }
@@ -323,10 +337,160 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "certified_stores":
+            "admin_access":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"admin_audit":
+{ Args: { "p_action": string,"p_actor": string,"p_details": Json,"p_target_id": string,"p_target_type": string }; Returns: undefined
+                           },
+"admin_check_text":
+{ Args: { "p_field": string,"p_max": number,"p_min": number,"p_value": string }; Returns: undefined
+                           },
+"admin_delete_learner":
+{ Args: { "p_confirm_name": string,"p_user": string }; Returns: undefined
+                           },
+"admin_delete_lesson":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"admin_get_learner":
+{ Args: { "p_user": string }; Returns: Json
+                           },
+"admin_get_lesson":
+{ Args: { "p_id": string }; Returns: Json
+                           },
+"admin_get_quiz":
+{ Args: { "p_lesson": string }; Returns: Json
+                           },
+"admin_get_settings":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "description": string,"key": string,"updated_at": string,"value": Json
+            }[]
+                           },
+"admin_list_audit":
+{ Args: { "p_action": string,"p_before": number }; Returns: {
+              "action": string,"actor_name": string,"at": string,"details": Json,"id": number,"target_id": string,"target_type": string
+            }[]
+                           },
+"admin_list_categories":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "description": string,"id": string,"lesson_count": number,"name": string,"slug": string,"sort_order": number
+            }[]
+                           },
+"admin_list_lessons":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "category_id": string,"category_name": string,"duration_seconds": number,"id": string,"is_core": boolean,"learners_started": number,"product_name": string,"published": boolean,"qr_links": number,"quiz_ready": boolean,"region": Database["public"]['Enums']["region"],"slug": string,"sort_order": number,"title": string,"vimeo_id": string
+            }[]
+                           },
+"admin_list_partners":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "id": string,"name": string,"parent_group": string,"store_count": number,"type": string
+            }[]
+                           },
+"admin_list_qr_links":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "created_at": string,"id": string,"lesson_id": string,"lesson_title": string,"scan_count": number,"slug": string
+            }[]
+                           },
+"admin_list_stores":
+{ Args: { "p_partner": string }; Returns: {
+              "active": boolean,"certified_staff": number,"country": string,"id": string,"is_certified": boolean,"learners": number,"name": string,"partner_id": string,"partner_name": string,"state": string,"store_code": string,"suburb": string
+            }[]
+                           },
+"admin_log_export":
+{ Args: { "p_report": string,"p_rows": number }; Returns: undefined
+                           },
+"admin_move_category":
+{ Args: { "p_direction": number,"p_id": string }; Returns: undefined
+                           },
+"admin_move_lesson":
+{ Args: { "p_direction": number,"p_id": string }; Returns: undefined
+                           },
+"admin_new_store_code":
+{ Args: { "p_location": string,"p_prefix": string }; Returns: string
+                           },
+"admin_overview":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_regenerate_store_code":
+{ Args: { "p_location": string,"p_prefix": string,"p_store": string }; Returns: string
+                           },
+"admin_reinstate_certificate":
+{ Args: { "p_certificate": string }; Returns: undefined
+                           },
+"admin_report_certified_staff":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "certificate_number": string,"expires_at": string,"first_name": string,"issued_at": string,"last_name": string,"partner_name": string,"status": string,"store_name": string
+            }[]
+                           },
+"admin_report_certified_stores":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "certified_staff": number,"is_certified": boolean,"partner_name": string,"state": string,"store_id": string,"store_name": string,"suburb": string,"threshold": number
+            }[]
+                           },
+"admin_report_completions":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "category_name": string,"is_core": boolean,"lesson_id": string,"passed": number,"published": boolean,"started": number,"title": string,"watched": number
+            }[]
+                           },
+"admin_report_qr_scans":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "lesson_title": string,"scans": number,"slug": string,"utm_source": string
+            }[]
+                           },
+"admin_reset_mfa":
+{ Args: { "p_user": string }; Returns: undefined
+                           },
+"admin_revoke_certificate":
+{ Args: { "p_certificate": string,"p_reason": string }; Returns: undefined
+                           },
+"admin_save_category":
+{ Args: { "p_description": string,"p_id": string,"p_name": string,"p_slug": string }; Returns: string
+                           },
+"admin_save_lesson":
+{ Args: { "p_category": string,"p_duration_seconds": number,"p_id": string,"p_is_core": boolean,"p_product_name": string,"p_published": boolean,"p_region": Database["public"]['Enums']["region"],"p_slug": string,"p_summary": string,"p_title": string,"p_vimeo_id": string }; Returns: string
+                           },
+"admin_save_partner":
+{ Args: { "p_id": string,"p_name": string,"p_parent_group": string,"p_type": string }; Returns: string
+                           },
+"admin_save_qr_link":
+{ Args: { "p_id": string,"p_lesson": string,"p_slug": string }; Returns: string
+                           },
+"admin_save_quiz":
+{ Args: { "p_lesson": string,"p_questions": Json }; Returns: undefined
+                           },
+"admin_save_settings":
+{ Args: { "p_values": Json }; Returns: undefined
+                           },
+"admin_save_store":
+{ Args: { "p_active": boolean,"p_country": string,"p_id": string,"p_location": string,"p_name": string,"p_partner": string,"p_prefix": string,"p_state": string,"p_suburb": string }; Returns: string
+                           },
+"admin_search_learners":
+{ Args: { "p_query": string }; Returns: {
+              "active": boolean,"certificate_status": string,"email": string,"first_name": string,"id": string,"last_name": string,"role": string,"store_name": string
+            }[]
+                           },
+"admin_set_learner_active":
+{ Args: { "p_active": boolean,"p_user": string }; Returns: undefined
+                           },
+"admin_set_learner_store":
+{ Args: { "p_store": string,"p_user": string }; Returns: undefined
+                           },
+"admin_set_role":
+{ Args: { "p_role": string,"p_user": string }; Returns: undefined
+                           },
+"admin_slug_ok":
+{ Args: { "p_max": number,"p_slug": string }; Returns: boolean
+                           },
+"certificate_status_of":
+{ Args: { "p_user": string }; Returns: string
+                           },
+"certified_stores":
 { Args: Record<PropertyKey, never>; Returns: {
               "country": string,"name": string,"state": string,"suburb": string
             }[]
+                           },
+"current_admin":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "current_learner":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -381,11 +545,20 @@ isOneToOne: false
 "random_code":
 { Args: { "p_length": number }; Returns: string
                            },
+"require_admin":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"require_step_up":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "save_lesson_progress":
 { Args: { "p_lesson_id": string,"p_percent": number,"p_position_seconds": number }; Returns: undefined
                            },
 "setting_int":
 { Args: { "p_default": number,"p_key": string,"p_max": number,"p_min": number }; Returns: number
+                           },
+"setting_value_ok":
+{ Args: { "p_key": string,"p_value": Json }; Returns: boolean
                            },
 "submit_quiz":
 { Args: { "p_answers": Json,"p_lesson_id": string }; Returns: {

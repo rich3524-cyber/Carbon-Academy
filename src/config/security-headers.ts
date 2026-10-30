@@ -28,7 +28,7 @@ export function contentSecurityPolicy(dev: boolean): string {
  * Public pages get the allowlist CSP from next.config.ts. Account pages are excluded because
  * proxy.ts gives them a per-request nonce CSP instead (Phase 3 Task 7).
  */
-export const publicHeaderSource = '/((?!dashboard|sign-in|join|auth).*)'
+export const publicHeaderSource = '/((?!dashboard|sign-in|join|auth|admin).*)'
 
 export function securityHeaders(dev: boolean) {
   return [

@@ -1,6 +1,6 @@
 # Permissions matrix (security framework control 04, Appendix A)
 
-Covers Phase 3 (accounts and progress). Admin rows are filled in Phase 6, when admin features exist. Earlier tables (`categories`, `lessons`, `settings`, `qr_links`, `qr_scans`) are covered by `tests/db/rls.test.ts` and `tests/db/qr.test.ts`.
+Covers Phase 3 (accounts and progress) onwards. **Phase 6:** admins get no direct table access at all. Every admin read and write is an `admin_*` security definer function whose first statement is `require_admin()`, and high-risk ones also call `require_step_up()`. `tests/db/admin.test.ts` enumerates every `admin_*` function from `pg_proc` and calls each one as every refused caller. Earlier tables (`categories`, `lessons`, `settings`, `qr_links`, `qr_scans`) are covered by `tests/db/rls.test.ts` and `tests/db/qr.test.ts`.
 
 ## Roles
 
@@ -8,7 +8,7 @@ Covers Phase 3 (accounts and progress). Admin rows are filled in Phase 6, when a
 |---|---|---|
 | **anon** | Publishable key, no session | Anyone on the internet, including direct calls to the Supabase API |
 | **learner** | Signed in, `profiles.role = 'learner'`, `active = true` | Retail staff (store linked) and customers (no store). A deactivated profile counts as signed out in the app |
-| **admin** | `profiles.role = 'admin'` | Phase 6. No admin features exist yet. MFA is required (control 03) |
+| **admin** | `profiles.role = 'admin'`, `active`, this session at `aal2` in `auth.sessions`, and a TOTP on this session in the last 8 hours (`current_admin()`) | Phase 6. Anything less is treated as a learner (the admin area is a 404). High-risk actions also need a TOTP in the last 5 minutes (step-up) |
 | **service** | Secret key | Local DB tests and the staging test-user script only. **The app never uses it in Phase 3** |
 
 ## Database
@@ -17,31 +17,35 @@ Covers Phase 3 (accounts and progress). Admin rows are filled in Phase 6, when a
 
 | Resource | anon | learner (own rows) | learner (others' rows) | admin | Notes |
 |---|---|---|---|---|---|
-| `partners`: read | ✗ † | Own store's partner † | ✗ † | Phase 6 | |
-| `stores`: read | ✗ † | Own store: `id`, `partner_id`, `name`, `suburb`, `state`, `country`. **Not** `store_code` † | ✗ † | Phase 6 | Column grant (T-11) |
+| `partners`: read | ✗ † | Own store's partner † | ✗ † | Fn `admin_*` only | |
+| `stores`: read | ✗ † | Own store: `id`, `partner_id`, `name`, `suburb`, `state`, `country`. **Not** `store_code` † | ✗ † | Fn `admin_*` only | Column grant (T-11) |
 | Store by code | Fn `lookup_store`: name, partner, suburb, state; active stores only † | Same | n/a | | No list endpoint; returns no IDs or codes |
-| `stores`, `partners`: insert, update, delete | ✗ † | ✗ † | ✗ | Phase 6 | |
-| `profiles`: read | ✗ † | Own row † | ✗ † | Phase 6 | |
+| `stores`, `partners`: insert, update, delete | ✗ † | ✗ † | ✗ | Fn `admin_*` only | |
+| `profiles`: read | ✗ † | Own row † | ✗ † | Fn `admin_*` only | |
 | `profiles`: insert | Trigger on `auth.users` only † | ✗ † | ✗ | | Role is always `learner`, whatever the metadata says † |
-| `profiles`: update | ✗ † | ✗ directly †; `store_id` only through Fn `join_store(code)` † | ✗ † | Phase 6 | No field is writable directly |
-| `profiles`: delete | ✗ † | ✗ † | ✗ | Phase 6 | Cascades from deleting the auth user † |
-| `lesson_progress`: read | ✗ † | Own rows † | ✗ † | Phase 6 reports | |
+| `profiles`: update | ✗ † | ✗ directly †; `store_id` only through Fn `join_store(code)` † | ✗ † | Fn `admin_*` only | No field is writable directly |
+| `profiles`: delete | ✗ † | ✗ † | ✗ | Fn `admin_*` only | Cascades from deleting the auth user † |
+| `lesson_progress`: read | ✗ † | Own rows † | ✗ † | Fn `admin_report_*` only | |
 | `lesson_progress`: write | ✗ † | Fn `save_lesson_progress` only: own rows, published lessons, clamped, monotonic † | ✗ (the function takes no user ID) † | | |
-| `lesson_progress`: delete | ✗ † | ✗ † | ✗ | Phase 6 | Cascades with the profile † |
-| `questions`, `answer_options` (incl. `is_correct`): read | ✗ | ✗ directly; question and option text only through Fn `get_quiz`, once unlocked | ✗ | Phase 6 | No grants at all (T-30, T-35) |
-| `questions`, `answer_options`: write | ✗ | ✗ | ✗ | Phase 6 | |
-| `quiz_attempts`: read | ✗ | Own rows: `id`, `user_id`, `lesson_id`, `score`, `total`, `passed`, `created_at`. **Not** `answers` | ✗ | Phase 6 reports | Column grant + RLS (T-34) |
+| `lesson_progress`: delete | ✗ † | ✗ † | ✗ | Fn `admin_*` only | Cascades with the profile † |
+| `questions`, `answer_options` (incl. `is_correct`): read | ✗ | ✗ directly; question and option text only through Fn `get_quiz`, once unlocked | ✗ | Fn `admin_*` only | No grants at all (T-30, T-35) |
+| `questions`, `answer_options`: write | ✗ | ✗ | ✗ | Fn `admin_*` only | |
+| `quiz_attempts`: read | ✗ | Own rows: `id`, `user_id`, `lesson_id`, `score`, `total`, `passed`, `created_at`. **Not** `answers` | ✗ | Fn `admin_report_*` only | Column grant + RLS (T-34) |
 | `quiz_attempts`: write | ✗ | Fn `submit_quiz` only: unlocked, within the limit, valid answers | ✗ (the function takes no user ID) | | No insert, update or delete grants |
 | Fn `quiz_status(lesson)` | Says only `unavailable` or `signed_out` | State and attempts left | n/a | | |
 | Fn `lessons_with_quiz()` | ✗ | IDs of published lessons with a ready quiz | n/a | | Dashboard "complete" rule |
 | Fn `quiz_ready`, `quiz_unlocked`, `setting_int` | ✗ | ✗ | ✗ | | EXECUTE revoked: internal helpers; `quiz_unlocked` takes a user ID |
-| `certificates`: read | ✗ | Own rows: number, check code, names and store at issue, dates, revoked | ✗ | Phase 6 | Column grant + RLS (T-41) |
-| `certificates`: write | ✗ | ✗ (issued only by `issue_certificate_if_eligible`, inside `submit_quiz` and `join_store`) | ✗ | Phase 6 (revoke) | T-37, T-38 |
-| `certificate_counters`, `store_status` | ✗ | ✗ | ✗ | Phase 6 reports | Internal |
+| `certificates`: read | ✗ | Own rows: number, check code, names and store at issue, dates, revoked | ✗ | Fn `admin_*` only | Column grant + RLS (T-41) |
+| `certificates`: write | ✗ | ✗ (issued only by `issue_certificate_if_eligible`, inside `submit_quiz` and `join_store`) | ✗ | Fn `admin_revoke_certificate`, `admin_reinstate_certificate` (step-up) | T-37, T-38 |
+| `certificate_counters`, `store_status` | ✗ | ✗ | ✗ | Fn `admin_report_*` only | Internal |
 | Fn `my_store_status()` | ✗ | Own store: name, certified staff, threshold, certified | n/a | | |
 | Fn `verify_certificate(code)` | Six fields, needs number and check code | same | same | | T-39, T-40 |
 | Fn `certified_stores()` | Certified stores: name, suburb, state, country | same | same | | T-42 |
 | Fn `issue_certificate_if_eligible`, `random_code` | ✗ | ✗ | ✗ | | EXECUTE revoked (T-38) |
+| `admin_audit_log` | ✗ | ✗ | ✗ | Read through Fn `admin_list_audit`; never written directly by anyone | Written only by `admin_audit()` inside admin functions and the `auth.mfa_factors` trigger; no API role has update or delete (T-49) |
+| Fn `admin_access()` | ✗ | Says `none` only | n/a | `enrol`, `verify` or `ok` | Decides the 404 and the MFA page |
+| Fn `admin_*` (about 35, listed in the Phase 6 plan) | ✗ | ✗ (`42501`) | ✗ | ✓ at `aal2` with a TOTP in the last 8 h; step-up for role, MFA, store code, certificate, delete, settings and export | `tests/db/admin.test.ts` test 1 |
+| Fn `current_admin`, `require_admin`, `require_step_up`, `admin_audit`, `setting_value_ok` | ✗ | ✗ | ✗ | ✗ (internal) | EXECUTE revoked |
 | Fn `join_store`, `save_lesson_progress` | ✗ (not granted, and `auth.uid()` is checked) † | ✓ | n/a | | |
 
 ## App (Server Actions)
@@ -63,6 +67,11 @@ Every Server Action is a public endpoint (framework section 4). `proxy.ts` is ne
 | `/verify/[code]` | Anyone | Zod code; `verify_certificate` needs the check code; six fields; edge limit 30/min; `noindex` | `tests/db/certification.test.ts` |
 | `GET /api/certified-stores` | Anyone | Four store fields; cached 1 h; edge limit 60/min; no CORS | `src/app/api/certified-stores/route.test.ts` |
 
+| `/admin/**` pages | Admin with MFA | `requireAdmin()` on every page (guard test); 404 for anyone else; `/admin/mfa` uses `requireAdminForMfa()` | `tests/admin/guard.test.ts`, Phase 6 Task 18 matrix |
+| Admin Server Actions (`src/lib/admin/actions/*`) | Admin with MFA | `requireAdmin()` first (guard test); Zod; high-risk ones `verifyStepUp()`; the database checks access and step-up again | Action tests; `tests/db/admin.test.ts` |
+| `GET /admin/qr/[id]/svg` | Admin with MFA | `requireAdmin()`; Zod UTM values; `private, no-store` | Route test |
+| `POST /admin/reports/[report]/export` | Admin with MFA and step-up | Same-origin check (`Sec-Fetch-Site`, or Origin against the request host); `requireAdmin()`; Zod; `verifyStepUp()`; `admin_log_export` (step-up in the DB); `private, no-store` | Route test (T-54) |
+
 ## Auth API rules enforced in the database (all pathways)
 
 These hold however `auth.users` is changed: through the app, a direct Auth API call, or the Supabase dashboard.
@@ -75,11 +84,16 @@ These hold however `auth.users` is changed: through the app, a direct Auth API c
 | `profiles.email` follows a confirmed email change | `sync_profile_email` | "keeps profiles.email in step" |
 | A signed-out, expired or deactivated session gets nothing | `current_learner()` in every policy and write function | "session end" tests |
 
-## Runbooks (manual until the Phase 6 admin area)
+## Runbooks
 
-**Deletion on request.**
-1. In the Supabase dashboard, go to Authentication and delete the user. The deletion cascades to the profile and progress.
-2. Record the date and user ID, never the email.
+**Deletion on request (Phase 6: in the admin area).**
+1. Admin → Learners → the learner → Delete learner. Type their full name and a fresh code from the authenticator app.
+2. The audit log records the date, the operator and the user ID, never the email. Admins must have the admin role removed first.
+
+**Lost authenticator (admins; decision 3, ASVS 6.4.4).**
+1. Verify the person as in account recovery below: by phone, with details only they would know. Never on a request by email alone.
+2. Another admin opens Admin → Learners → that admin → Reset MFA (step-up). It removes every factor and signs them out; they set up a new authenticator at their next sign-in. The audit log records it against the resetting admin.
+3. With only one admin: Supabase dashboard → Authentication → Users → the user → remove the factor, then record it in `EVIDENCE.md` under "Admin actions".
 
 This stays manual until the retention job is built, before the Phase 7 gate.
 
