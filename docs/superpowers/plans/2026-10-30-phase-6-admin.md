@@ -1255,7 +1255,7 @@ export function toCsv<T>(rows: readonly T[], columns: readonly Column<T>[]): str
   return `﻿${lines.map((line) => line.join(',')).join('\r\n')}\r\n`
 }
 
-/** BRAND p.50 naming: CarbonOffroad_Report-CertifiedStaff_v1_20261030.csv (Brisbane date). */
+/** BRAND p.50 naming: CarbonOffroad_Report_CertifiedStaff_v1_20261030.csv (Brisbane date). */
 export function reportFilename(name: string, now = new Date()): string {
   const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Brisbane' })
     .format(now)
@@ -1423,3 +1423,4 @@ Recorded so the plan matches what was built. None changes an approved decision.
 8. **The admin navigation is drawn by each page after the access check,** not by the layout, so a refused visitor sees the site's normal 404 page and nothing of the admin area.
 9. **Mutation 1 (no aal check) was first missed,** because the 8-hour TOTP check covered it. A new refused caller (fresh TOTP, aal1 session) now proves the aal check on its own.
 10. **The settings URL check had a regex repeat count over Postgres's limit of 255.** Fixed and tested before anything was applied remotely.
+11. **File names use an underscore between every field** (BRAND p.50: underscores between fields, hyphens within them): `CarbonOffroad_Report_CertifiedStaff_v1_20261030.csv` and `CarbonOffroad_QR_winch-fitting_v1_20261030.svg`, not the `Report-` form written above.

@@ -47,8 +47,8 @@ describe('file names (BRAND p.50)', () => {
   it('names reports and QR codes the house way', () => {
     const at = new Date('2026-10-30T01:00:00Z')
     expect(reportFilename('CertifiedStaff', at)).toBe(
-      'CarbonOffroad_Report-CertifiedStaff_v1_20261030.csv',
+      'CarbonOffroad_Report_CertifiedStaff_v1_20261030.csv',
     )
-    expect(qrFilename('winch-fitting', at)).toBe('CarbonOffroad_QR-winch-fitting_v1_20261030.svg')
+    expect(qrFilename('winch-fitting', at)).toBe('CarbonOffroad_QR_winch-fitting_v1_20261030.svg')
   })
 })

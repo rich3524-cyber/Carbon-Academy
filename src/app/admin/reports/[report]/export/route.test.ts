@@ -96,7 +96,7 @@ describe('POST /admin/reports/[report]/export', () => {
     expect(response.headers.get('content-type')).toBe('text/csv; charset=utf-8')
     expect(response.headers.get('cache-control')).toBe('private, no-store')
     expect(response.headers.get('content-disposition')).toMatch(
-      /^attachment; filename="CarbonOffroad_Report-CertifiedStaff_v1_\d{8}\.csv"$/,
+      /^attachment; filename="CarbonOffroad_Report_CertifiedStaff_v1_\d{8}\.csv"$/,
     )
     // TextDecoder drops the byte-order mark unless told not to.
     const text = new TextDecoder('utf-8', { ignoreBOM: true }).decode(await response.arrayBuffer())
