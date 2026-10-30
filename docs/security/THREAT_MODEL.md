@@ -101,7 +101,7 @@ Trust boundaries are the browser to Netlify, Netlify to Supabase, and Supabase t
 | T-51 | CSV exports | Bulk export of personal information | Information disclosure | Step-up; audit row with report and row count; no emails in any report; `private, no-store` | Planned |
 | T-52 | Admin roles | Two admins remove each other, or the last admin is removed or deactivated | DoS | Advisory lock before the access check; own role can't change; admins can't be deactivated or deleted while they're admins | Planned |
 | T-53 | Store codes | A code leaks through the audit log or app logs | Information disclosure | Never written to either; a test asserts the audit details hold no code | Planned |
-| T-54 | CSV export route | A cross-site POST triggers an export | CSRF | Origin check; SameSite cookies; a step-up code in the body | Planned |
+| T-54 | CSV export route | A cross-site POST triggers an export | CSRF | Same-origin check (`Sec-Fetch-Site`, or Origin against the request host); SameSite cookies; a step-up code in the body | Planned |
 | T-55 | Certification | An admin edit makes nobody certifiable (a core lesson published without a quiz) | DoS | `CAA03` guard on publishing a core lesson; a quiz save always leaves a ready quiz | Planned |
 | T-56 | MFA verify | Brute-forcing or replaying 6-digit codes | Spoofing | Supabase MFA verify limits; edge limit of 30 POSTs a minute per IP on `/admin/*`; `admin_mfa_failed` logged. Residual: Supabase accepts a code again within its time window (proved locally), so a code seen over the shoulder works for about a minute, but only with that admin's signed-in session too | Planned, residual accepted |
 

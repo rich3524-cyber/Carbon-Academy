@@ -70,7 +70,7 @@ Every Server Action is a public endpoint (framework section 4). `proxy.ts` is ne
 | `/admin/**` pages | Admin with MFA | `requireAdmin()` on every page (guard test); 404 for anyone else; `/admin/mfa` uses `requireAdminForMfa()` | `tests/admin/guard.test.ts`, Phase 6 Task 18 matrix |
 | Admin Server Actions (`src/lib/admin/actions/*`) | Admin with MFA | `requireAdmin()` first (guard test); Zod; high-risk ones `verifyStepUp()`; the database checks access and step-up again | Action tests; `tests/db/admin.test.ts` |
 | `GET /admin/qr/[id]/svg` | Admin with MFA | `requireAdmin()`; Zod UTM values; `private, no-store` | Route test |
-| `POST /admin/reports/[report]/export` | Admin with MFA and step-up | Origin check; `requireAdmin()`; Zod; `verifyStepUp()`; `admin_log_export` (step-up in the DB); `private, no-store` | Route test (T-54) |
+| `POST /admin/reports/[report]/export` | Admin with MFA and step-up | Same-origin check (`Sec-Fetch-Site`, or Origin against the request host); `requireAdmin()`; Zod; `verifyStepUp()`; `admin_log_export` (step-up in the DB); `private, no-store` | Route test (T-54) |
 
 ## Auth API rules enforced in the database (all pathways)
 

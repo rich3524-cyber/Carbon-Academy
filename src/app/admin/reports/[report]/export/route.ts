@@ -5,10 +5,10 @@ import { callAdmin } from '@/lib/admin/call'
 import { toCsv } from '@/lib/admin/csv'
 import { reportFilename } from '@/lib/admin/files'
 import { defaultRange, REPORT_DEFINITIONS } from '@/lib/admin/reports'
+import { isSameOrigin } from '@/lib/admin/same-origin'
 import { verifyStepUp } from '@/lib/admin/step-up'
 import { DateInput, ReportName } from '@/lib/admin/validation'
 import { logSecurityEvent } from '@/lib/log'
-import { siteUrl } from '@/lib/site'
 
 /**
  * CSV export (decision 11; T-50, T-51, T-54). A POST from our own origin, by an admin, with a
@@ -20,14 +20,14 @@ export async function POST(
 ) {
   await connection()
   // Cross-site posts never reach the data (T-54). Same 404 as everything else.
-  if (request.headers.get('origin') !== siteUrl()) notFound()
+  if (!isSameOrigin(request)) notFound()
   await requireAdmin()
   const report = ReportName.safeParse((await params).report)
   if (!report.success) notFound()
 
   const formData = await request.formData()
   if (!(await verifyStepUp(formData))) {
-    return Response.redirect(new URL(`/admin/reports/${report.data}?stepup=failed`, siteUrl()), 303)
+    return backToReport(report.data)
   }
   const fallback = defaultRange()
   const from = DateInput.safeParse(formData.get('from')).data ?? fallback.from
@@ -37,7 +37,7 @@ export async function POST(
   const rows = await definition.load({ from, to })
   const logged = await callAdmin('admin_log_export', { p_report: report.data, p_rows: rows.length })
   if (!logged.ok) {
-    return Response.redirect(new URL(`/admin/reports/${report.data}?stepup=failed`, siteUrl()), 303)
+    return backToReport(report.data)
   }
   logSecurityEvent('admin_export', { action: report.data, rows: rows.length })
 
@@ -47,6 +47,17 @@ export async function POST(
       'Content-Disposition': `attachment; filename="${reportFilename(definition.fileName)}"`,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
+    },
+  })
+}
+
+/** A relative redirect, so a preview stays on the preview (Netlify's request.url can differ). */
+function backToReport(report: string): Response {
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: `/admin/reports/${report}?stepup=failed`,
+      'Cache-Control': 'private, no-store',
     },
   })
 }

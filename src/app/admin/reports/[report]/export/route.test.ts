@@ -17,7 +17,6 @@ vi.mock('@/lib/admin/access', () => ({ requireAdmin }))
 vi.mock('@/lib/admin/step-up', () => ({ verifyStepUp }))
 vi.mock('@/lib/admin/call', () => ({ callAdmin }))
 vi.mock('@/lib/log', () => ({ logSecurityEvent: log }))
-vi.mock('@/lib/site', () => ({ siteUrl: () => 'https://academy.test' }))
 vi.mock('@/lib/admin/reports', async (original) => {
   const real = await original<typeof import('@/lib/admin/reports')>()
   return {
@@ -31,13 +30,15 @@ vi.mock('@/lib/admin/reports', async (original) => {
 
 const { POST } = await import('./route')
 const context = (report: string) => ({ params: Promise.resolve({ report }) })
-const post = (origin: string | null) => {
+const post = (fetchSite: string | null) => {
   const body = new FormData()
   body.set('stepUpCode', '123456')
   body.set('stepUpFactor', '2b1f0d5e-3c4a-4b6d-9e8f-0a1b2c3d4e5f')
   return new Request('https://academy.test/admin/reports/certified-staff/export', {
     method: 'POST',
-    headers: origin ? { origin } : {},
+    headers: fetchSite
+      ? { 'sec-fetch-site': fetchSite }
+      : { origin: 'https://evil.test', host: 'academy.test' },
     body,
   })
 }
@@ -61,9 +62,9 @@ beforeEach(() => {
 })
 
 describe('POST /admin/reports/[report]/export', () => {
-  it('refuses a cross-site or origin-less post before anything else (T-54)', async () => {
-    for (const origin of ['https://evil.test', null]) {
-      await expect(POST(post(origin), context('certified-staff'))).rejects.toThrow('NOT_FOUND')
+  it('refuses a cross-site post, or a foreign Origin before anything else (T-54)', async () => {
+    for (const site of ['cross-site', 'same-site', null]) {
+      await expect(POST(post(site), context('certified-staff'))).rejects.toThrow('NOT_FOUND')
     }
     expect(requireAdmin).not.toHaveBeenCalled()
     expect(load).not.toHaveBeenCalled()
@@ -71,24 +72,20 @@ describe('POST /admin/reports/[report]/export', () => {
 
   it('refuses non-admins', async () => {
     requireAdmin.mockRejectedValue(new Error('NOT_FOUND'))
-    await expect(POST(post('https://academy.test'), context('certified-staff'))).rejects.toThrow(
-      'NOT_FOUND',
-    )
+    await expect(POST(post('same-origin'), context('certified-staff'))).rejects.toThrow('NOT_FOUND')
     expect(load).not.toHaveBeenCalled()
   })
 
   it('sends a failed code back to the report page without loading data', async () => {
     verifyStepUp.mockResolvedValue(false)
-    const response = await POST(post('https://academy.test'), context('certified-staff'))
+    const response = await POST(post('same-origin'), context('certified-staff'))
     expect(response.status).toBe(303)
-    expect(response.headers.get('location')).toBe(
-      'https://academy.test/admin/reports/certified-staff?stepup=failed',
-    )
+    expect(response.headers.get('location')).toBe('/admin/reports/certified-staff?stepup=failed')
     expect(load).not.toHaveBeenCalled()
   })
 
   it('returns a neutralised CSV, logged in the audit log and never cached', async () => {
-    const response = await POST(post('https://academy.test'), context('certified-staff'))
+    const response = await POST(post('same-origin'), context('certified-staff'))
     expect(callAdmin).toHaveBeenCalledWith('admin_log_export', {
       p_report: 'certified-staff',
       p_rows: 1,
@@ -108,8 +105,6 @@ describe('POST /admin/reports/[report]/export', () => {
   })
 
   it('gives an unknown report the same 404', async () => {
-    await expect(POST(post('https://academy.test'), context('everything'))).rejects.toThrow(
-      'NOT_FOUND',
-    )
+    await expect(POST(post('same-origin'), context('everything'))).rejects.toThrow('NOT_FOUND')
   })
 })
