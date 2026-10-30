@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { admin } from './clients'
+import { totp } from './totp'
 
 // Fictional @example.com users only (EX-01). Created with the secret key on the local stack.
 
@@ -33,6 +34,32 @@ export async function signInAs(email: string): Promise<SupabaseClient> {
   })
   if (verifyError) throw verifyError
   return client
+}
+
+export type TestAdmin = TestUser & {
+  factorId: string
+  secret: string
+  stepUp: () => Promise<void>
+}
+
+/** A fictional admin with a real enrolled TOTP factor. `verified: false` stops at aal1. */
+export async function createTestAdmin(
+  label: string,
+  { verified = true, enrolled = true } = {},
+): Promise<TestAdmin> {
+  const user = await createTestUser(label, { first_name: 'Admin', last_name: label })
+  const { error } = await admin.from('profiles').update({ role: 'admin' }).eq('id', user.id)
+  if (error) throw error
+  if (!enrolled) return { ...user, factorId: '', secret: '', stepUp: async () => {} }
+  const { data, error: enrolError } = await user.client.auth.mfa.enroll({ factorType: 'totp' })
+  if (enrolError) throw enrolError
+  const verify = async (at?: number) => {
+    const code = totp(data.totp.secret, at)
+    const result = await user.client.auth.mfa.challengeAndVerify({ factorId: data.id, code })
+    if (result.error) throw result.error
+  }
+  if (verified) await verify()
+  return { ...user, factorId: data.id, secret: data.totp.secret, stepUp: () => verify() }
 }
 
 export async function deleteTestUser(user: TestUser | undefined) {
