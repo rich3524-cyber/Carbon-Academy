@@ -147,6 +147,10 @@ beforeAll(async () => {
   const out = await track(createTestAdmin('out'))
   const token = (await out.client.auth.getSession()).data.session!.access_token
   await out.client.auth.signOut()
+  // A fresh TOTP claim on a session that is aal1 in auth.sessions: proves the aal check stands on
+  // its own, not only through the 8-hour TOTP check (mutation 1).
+  const forced = await track(createTestAdmin('forced'))
+  localSql(`update auth.sessions set aal = 'aal1' where user_id = '${forced.id}'`)
   const plain = await learner('plain', { store_code: ROBINA })
   refused = [
     ['anon', publicClient],
@@ -155,6 +159,7 @@ beforeAll(async () => {
     ['admin 9 hours stale', stale.client],
     ['deactivated admin', off.client],
     ['signed-out admin (copied token)', clientWithToken(token)],
+    ['admin with a TOTP but an aal1 session', forced.client],
   ]
 
   const { data: store } = await admin.from('stores').select('id').eq('store_code', ROBINA).single()
@@ -224,6 +229,7 @@ describe('admin access', () => {
       'admin 9 hours stale': 'verify',
       'deactivated admin': 'none',
       'signed-out admin (copied token)': 'none',
+      'admin with a TOTP but an aal1 session': 'verify',
     })
     expect((await call(fresh.client, 'admin_access')).data).toBe('enrol')
     expect((await call(boss.client, 'admin_access')).data).toBe('ok')

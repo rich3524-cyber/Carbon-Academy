@@ -190,17 +190,21 @@ as $$
     when p_key in ('pass_mark_percent', 'store_certification_threshold',
                    'certificate_validity_months', 'certificate_renewal_window_days',
                    'quiz_attempts_per_hour') then
+      -- The cast runs only after the digits check (AND gives no evaluation order).
       jsonb_typeof(p_value) = 'number'
-      and (p_value #>> '{}') ~ '^[0-9]{1,3}$'
-      and (p_value #>> '{}')::integer between
-        case p_key when 'pass_mark_percent' then 50 else 1 end
-        and
-        case p_key when 'pass_mark_percent' then 100 when 'store_certification_threshold' then 20
-                   when 'certificate_validity_months' then 36
-                   when 'certificate_renewal_window_days' then 90 else 20 end
+      and case when (p_value #>> '{}') ~ '^[0-9]{1,3}$' then
+        (p_value #>> '{}')::integer between
+          case p_key when 'pass_mark_percent' then 50 else 1 end
+          and
+          case p_key when 'pass_mark_percent' then 100 when 'store_certification_threshold' then 20
+                     when 'certificate_validity_months' then 36
+                     when 'certificate_renewal_window_days' then 90 else 20 end
+      else false end
     when p_key = 'warranty_registration_url' then
+      -- Postgres caps regex repeat counts at 255, so the length is checked separately.
       jsonb_typeof(p_value) = 'null'
-      or (jsonb_typeof(p_value) = 'string' and (p_value #>> '{}') ~ '^https://[^\s]{4,292}$')
+      or (jsonb_typeof(p_value) = 'string' and (p_value #>> '{}') ~ '^https://\S+$'
+          and length(p_value #>> '{}') between 12 and 300)
     when p_key = 'company_address' then
       jsonb_typeof(p_value) = 'string' and length(btrim(p_value #>> '{}')) between 1 and 200
     else false
