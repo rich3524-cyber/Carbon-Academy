@@ -157,7 +157,7 @@ describe('QuizPanel', () => {
   })
 
   it('shows one question at a time and submits every answer', async () => {
-    submitQuiz.mockResolvedValue({ ok: true, score: 2, total: 2, passed: true })
+    submitQuiz.mockResolvedValue({ ok: true, score: 2, total: 2, passed: true, certified: false })
     await renderPanel()
     await click('Take the quiz')
     expect(track).toHaveBeenCalledWith('quiz_start', analytics)
@@ -178,7 +178,7 @@ describe('QuizPanel', () => {
   })
 
   it('shows the count on a fail, never which answers were wrong, and offers a retry', async () => {
-    submitQuiz.mockResolvedValue({ ok: true, score: 1, total: 2, passed: false })
+    submitQuiz.mockResolvedValue({ ok: true, score: 1, total: 2, passed: false, certified: false })
     await renderPanel()
     await click('Take the quiz')
     fireEvent.click(screen.getByLabelText('Alpha'))
@@ -195,7 +195,7 @@ describe('QuizPanel', () => {
   })
 
   it('celebrates a pass with the BRAND.md line', async () => {
-    submitQuiz.mockResolvedValue({ ok: true, score: 2, total: 2, passed: true })
+    submitQuiz.mockResolvedValue({ ok: true, score: 2, total: 2, passed: true, certified: false })
     await renderPanel()
     await click('Take the quiz')
     fireEvent.click(screen.getByLabelText('Alpha'))
@@ -205,6 +205,24 @@ describe('QuizPanel', () => {
 
     expect(screen.getByText("Nailed it. That's one more lesson done.")).toBeTruthy()
     expect(track).toHaveBeenCalledWith('quiz_pass', analytics)
+  })
+
+  it('tells the learner when the pass certifies them (BRAND.md microcopy)', async () => {
+    submitQuiz.mockResolvedValue({ ok: true, score: 2, total: 2, passed: true, certified: true })
+    await renderPanel()
+    await click('Take the quiz')
+    fireEvent.click(screen.getByLabelText('Alpha'))
+    await click('Next')
+    fireEvent.click(screen.getByLabelText('Charlie'))
+    await click('Submit answers')
+
+    expect(
+      screen.getByText("You're Carbon Certified. Your certificate is ready to download."),
+    ).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'View your certificate' }).getAttribute('href')).toBe(
+      '/dashboard',
+    )
+    expect(track).toHaveBeenCalledWith('certificate_issued', analytics)
   })
 
   it('explains the attempt limit and offers no button', async () => {

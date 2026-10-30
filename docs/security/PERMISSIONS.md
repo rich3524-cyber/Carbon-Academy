@@ -35,6 +35,13 @@ Covers Phase 3 (accounts and progress). Admin rows are filled in Phase 6, when a
 | Fn `quiz_status(lesson)` | Says only `unavailable` or `signed_out` | State and attempts left | n/a | | |
 | Fn `lessons_with_quiz()` | ✗ | IDs of published lessons with a ready quiz | n/a | | Dashboard "complete" rule |
 | Fn `quiz_ready`, `quiz_unlocked`, `setting_int` | ✗ | ✗ | ✗ | | EXECUTE revoked: internal helpers; `quiz_unlocked` takes a user ID |
+| `certificates`: read | ✗ | Own rows: number, check code, names and store at issue, dates, revoked | ✗ | Phase 6 | Column grant + RLS (T-41) |
+| `certificates`: write | ✗ | ✗ (issued only by `issue_certificate_if_eligible`, inside `submit_quiz` and `join_store`) | ✗ | Phase 6 (revoke) | T-37, T-38 |
+| `certificate_counters`, `store_status` | ✗ | ✗ | ✗ | Phase 6 reports | Internal |
+| Fn `my_store_status()` | ✗ | Own store: name, certified staff, threshold, certified | n/a | | |
+| Fn `verify_certificate(code)` | Six fields, needs number and check code | same | same | | T-39, T-40 |
+| Fn `certified_stores()` | Certified stores: name, suburb, state, country | same | same | | T-42 |
+| Fn `issue_certificate_if_eligible`, `random_code` | ✗ | ✗ | ✗ | | EXECUTE revoked (T-38) |
 | Fn `join_store`, `save_lesson_progress` | ✗ (not granted, and `auth.uid()` is checked) † | ✓ | n/a | | |
 
 ## App (Server Actions)
@@ -52,6 +59,9 @@ Every Server Action is a public endpoint (framework section 4). `proxy.ts` is ne
 | `changeStore` | Signed-in learner | `requireUser()`; Zod; `join_store` checks `current_learner()` | `src/lib/stores/actions.test.ts` |
 | `getQuizStatus` | Anyone | Zod lesson ID; `quiz_status` checks `current_learner()` | `src/lib/quiz/actions.test.ts` |
 | `startQuiz`, `submitQuiz` | Signed-in learner | `getClaims()`; Zod; the database checks `current_learner()`, the unlock, the limit and the answers again | `src/lib/quiz/actions.test.ts`, `tests/db/quiz.test.ts` |
+| `GET /certificates/[number]` (PDF) | Signed-in owner | `getClaims()`; Zod number; RLS own row; revoked refused; same 404 for every refusal; `private, no-store` | `src/app/certificates/[number]/route.test.ts` |
+| `/verify/[code]` | Anyone | Zod code; `verify_certificate` needs the check code; six fields; edge limit 30/min; `noindex` | `tests/db/certification.test.ts` |
+| `GET /api/certified-stores` | Anyone | Four store fields; cached 1 h; edge limit 60/min; no CORS | `src/app/api/certified-stores/route.test.ts` |
 
 ## Auth API rules enforced in the database (all pathways)
 

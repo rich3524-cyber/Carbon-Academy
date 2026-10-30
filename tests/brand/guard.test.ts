@@ -46,13 +46,18 @@ describe('brand guard', () => {
   })
 
   // Account handles in URLs (facebook.com/CarbonOffroadAU) are addresses, not copy, so a
-  // name straight after "/" or "@" is allowed.
+  // name straight after "/" or "@" is allowed. So are file names, which follow the p.50
+  // convention (CarbonOffroad_Certificate_...), so the name may be joined to an underscore.
   it('spells the brand name as two words (p.16)', () => {
-    expect(offenders(copyFiles, /(?<![/@])CarbonOffroad|Carbon Off[\s-]Road/)).toEqual([])
+    expect(offenders(copyFiles, /(?<![/@])CarbonOffroad(?!_)|Carbon Off[\s-]Road/)).toEqual([])
   })
 
+  // Email HTML can't use CSS tokens, so BRAND.md gives the email colours as hex (p.45). Only the
+  // email templates may use them.
   it('uses colour tokens, not raw hex values, in components', () => {
-    expect(offenders(sourceFiles, /#[0-9a-fA-F]{3,8}\b/)).toEqual([])
+    const emailTemplates = join(root, 'src', 'lib', 'email')
+    const files = sourceFiles.filter((path) => !path.startsWith(emailTemplates))
+    expect(offenders(files, /#[0-9a-fA-F]{3,8}\b/)).toEqual([])
   })
 
   // BRAND.md "Website style" (approved 29 Oct 2026): rounded corners match carbonoffroad.com.au,

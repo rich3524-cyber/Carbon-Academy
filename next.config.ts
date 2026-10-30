@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // The certificate PDF reads its embedded font at request time (plan Task 5).
+  outputFileTracingIncludes: {
+    '/certificates/[number]': ['./src/lib/certificates/fonts/**'],
+  },
   // Security framework section 4, "Build and release configuration"
   poweredByHeader: false,
   productionBrowserSourceMaps: false,

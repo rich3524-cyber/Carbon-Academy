@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SignOutButton, SignOutEverywhereButton } from '@/components/account/SignOutButton'
+import { CertificateCard } from '@/components/certificates/CertificateCard'
 import { Badge } from '@/components/ui/Badge'
 import { ButtonLink } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { requireUser } from '@/lib/auth/session'
+import { getMyCertification } from '@/lib/certificates/data'
 import { getDashboard } from '@/lib/dashboard/data'
 
 export const metadata: Metadata = { title: 'My Academy', robots: { index: false } }
@@ -16,7 +18,10 @@ export const instant = false
 
 export default async function DashboardPage() {
   const user = await requireUser()
-  const { inProgress, completed, core } = await getDashboard()
+  const [{ inProgress, completed, core }, certification] = await Promise.all([
+    getDashboard(),
+    getMyCertification(),
+  ])
   const corePercent = core.total ? (core.done / core.total) * 100 : 0
 
   return (
@@ -59,7 +64,19 @@ export default async function DashboardPage() {
           A lesson is complete when you pass its quiz. Complete every core lesson to become Carbon
           Certified.
         </p>
+        {/* Draft copy, awaiting Rich's approval (brand p.69, Phase 5 decisions 7 and 14). */}
+        {certification.storeLine && <p className="mt-3 text-small">{certification.storeLine}</p>}
+        {certification.customerNote && (
+          <p className="mt-3 text-small">
+            {certification.customerNote}{' '}
+            <Link className="link" href="/join">
+              Join your store
+            </Link>
+          </p>
+        )}
       </section>
+
+      {certification.card && <CertificateCard card={certification.card} />}
 
       <section aria-labelledby="in-progress" className="mt-10">
         <h2 id="in-progress" className="text-h2">

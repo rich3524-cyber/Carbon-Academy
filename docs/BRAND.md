@@ -300,6 +300,7 @@ Based on the document page setup (p.48) and export settings (p.50). The guidelin
 - **Page:** A4 white, 20 mm margins on all sides. **Landscape [Approved]**, as an exception to the portrait document standard (p.48). "No coloured page backgrounds except covers."
 - **Logo:** full logo, black on transparent, top left. Use the vector master, not a raster. Size it to 30–40% of the page width (p.22), which is 89–119 mm on landscape A4. The 50–60 mm in p.48 assumes portrait letterhead.
 - **Title:** Eurostile Extended Black uppercase. **The whole certificate uses one family:** all Eurostile if a PDF-embedding licence exists, otherwise all Arial (Arial Bold for headings).
+  - **In use (Phase 5, approved 30 Oct 2026):** Arimo Regular and Bold, embedded. Arimo is metrically identical to Arial, so text sets exactly as Arial would, and its SIL Open Font Licence 1.1 allows embedding and shipping the font with the app (`src/lib/certificates/fonts/`, with `OFL.txt`). Arial itself can be embedded but not redistributed in the repo, and there is no Eurostile embedding licence.
 - **Accent:** one cyan rule or slash only.
 - **Footer:** Carbon Offroad | KPD Industries Pty Ltd | ABN 80 142 983 382 | 1300 780 141 | carbonoffroad.com.au.
 - **Verification:** certificate number and verification URL.

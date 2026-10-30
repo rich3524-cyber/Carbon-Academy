@@ -57,6 +57,52 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"certificate_counters": {
+                  Row: {
+                    "last_number": number,"year": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "last_number": number,"year": number
+                  }
+                  Update: {
+                    "last_number"?: number,"year"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"certificates": {
+                  Row: {
+                    "certificate_number": string,"check_code": string,"expires_at": string,"first_name": string,"id": string,"issued_at": string,"last_name": string,"revoked_at": string | null,"store_id_at_issue": string | null,"store_name_at_issue": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "certificate_number": string,"check_code": string,"expires_at": string,"first_name": string,"id"?: string,"issued_at"?: string,"last_name": string,"revoked_at"?: string | null,"store_id_at_issue"?: string | null,"store_name_at_issue": string,"user_id": string
+                  }
+                  Update: {
+                    "certificate_number"?: string,"check_code"?: string,"expires_at"?: string,"first_name"?: string,"id"?: string,"issued_at"?: string,"last_name"?: string,"revoked_at"?: string | null,"store_id_at_issue"?: string | null,"store_name_at_issue"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "certificates_store_id_at_issue_fkey"
+      columns: ["store_id_at_issue"]
+isOneToOne: false
+      referencedRelation: "store_status"
+      referencedColumns: ["store_id"]
+    },{
+      foreignKeyName: "certificates_store_id_at_issue_fkey"
+      columns: ["store_id_at_issue"]
+isOneToOne: false
+      referencedRelation: "stores"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "certificates_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"lesson_progress": {
                   Row: {
                     "completed_at": string | null,"first_progress_at": string,"last_position_seconds": number,"lesson_id": string,"max_percent": number,"updated_at": string,"user_id": string
@@ -130,6 +176,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "profiles_store_id_fkey"
+      columns: ["store_id"]
+isOneToOne: false
+      referencedRelation: "store_status"
+      referencedColumns: ["store_id"]
+    },{
       foreignKeyName: "profiles_store_id_fkey"
       columns: ["store_id"]
 isOneToOne: false
@@ -260,16 +312,32 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "store_status": {
+                  Row: {
+                    "active_certified_staff": number | null,"is_certified": boolean | null,"store_id": string
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Functions: {
-            "current_learner":
+            "certified_stores":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "country": string,"name": string,"state": string,"suburb": string
+            }[]
+                           },
+"current_learner":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "get_quiz":
 { Args: { "p_lesson_id": string }; Returns: {
               "option_id": string,"option_text": string,"prompt": string,"question_id": string
             }[]
+                           },
+"issue_certificate_if_eligible":
+{ Args: { "p_user": string }; Returns: string
                            },
 "join_store":
 { Args: { "p_code": string }; Returns: {
@@ -291,6 +359,11 @@ isOneToOne: false
               "partner_name": string,"state": string,"store_name": string,"suburb": string
             }[]
                            },
+"my_store_status":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "active_certified_staff": number,"is_certified": boolean,"store_name": string,"threshold": number
+            }[]
+                           },
 "normalise_store_code":
 { Args: { "p_code": string }; Returns: string
                            },
@@ -305,6 +378,9 @@ isOneToOne: false
 "quiz_unlocked":
 { Args: { "p_lesson_id": string,"p_user": string }; Returns: boolean
                            },
+"random_code":
+{ Args: { "p_length": number }; Returns: string
+                           },
 "save_lesson_progress":
 { Args: { "p_lesson_id": string,"p_percent": number,"p_position_seconds": number }; Returns: undefined
                            },
@@ -313,7 +389,12 @@ isOneToOne: false
                            },
 "submit_quiz":
 { Args: { "p_answers": Json,"p_lesson_id": string }; Returns: {
-              "passed": boolean,"score": number,"total": number
+              "certified": boolean,"passed": boolean,"score": number,"total": number
+            }[]
+                           },
+"verify_certificate":
+{ Args: { "p_code": string }; Returns: {
+              "expires_at": string,"first_name": string,"issued_at": string,"last_initial": string,"status": string,"store_name": string
             }[]
                            }
           }

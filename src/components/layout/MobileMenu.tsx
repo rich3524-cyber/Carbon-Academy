@@ -2,16 +2,30 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Suspense } from 'react'
 import { NAV_LINKS } from './nav'
 
 /**
  * Phone menu (BRAND.md Website style). A native <details> disclosure, so it works with the
  * keyboard and without extra script. Keyed on the path, so it closes after each navigation.
+ * Reading the path is request data on pages whose address isn't known at build time (such as
+ * /verify/[code]), so it sits in <Suspense>; the fallback is the same menu without the reset.
  */
 export function MobileMenu() {
-  const pathname = usePathname()
   return (
-    <details key={pathname} className="group md:hidden">
+    <Suspense fallback={<Menu resetKey="" />}>
+      <KeyedMenu />
+    </Suspense>
+  )
+}
+
+function KeyedMenu() {
+  return <Menu resetKey={usePathname()} />
+}
+
+function Menu({ resetKey }: { resetKey: string }) {
+  return (
+    <details key={resetKey} className="group md:hidden">
       <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-pill [&::-webkit-details-marker]:hidden">
         <span className="sr-only">Menu</span>
         <svg

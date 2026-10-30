@@ -3,9 +3,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const rpc = vi.fn()
 const getClaims = vi.fn()
 vi.mock('server-only', () => ({}))
+const profileSingle = vi.fn()
 vi.mock('@/lib/supabase/server', () => ({
-  createSessionClient: async () => ({ auth: { getClaims }, rpc }),
+  createSessionClient: async () => ({
+    auth: { getClaims },
+    rpc,
+    from: () => ({ select: () => ({ single: profileSingle }) }),
+  }),
 }))
+const sendEmail = vi.fn()
+vi.mock('@/lib/email/send', () => ({ sendEmail: (...args: unknown[]) => sendEmail(...args) }))
+vi.mock('@/lib/content/settings', () => ({
+  getProgramSettings: async () => ({
+    companyAddress: 'Unit 1a, 1 Waterway Drive, Coomera QLD 4209',
+  }),
+}))
+vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://academy.example.com')
 const log = vi.fn()
 vi.mock('@/lib/log', () => ({ logSecurityEvent: (...args: unknown[]) => log(...args) }))
 
@@ -23,6 +36,11 @@ function rpcResult(result: unknown) {
 beforeEach(() => {
   rpc.mockReset()
   log.mockReset()
+  sendEmail.mockReset().mockResolvedValue({ sent: false })
+  profileSingle.mockReset().mockResolvedValue({
+    data: { first_name: 'Pat', email: 'pat@example.com' },
+    error: null,
+  })
   getClaims.mockReset().mockResolvedValue({ data: { claims: { sub: 'user-1' } }, error: null })
 })
 
@@ -66,13 +84,17 @@ describe('startQuiz', () => {
 
 describe('submitQuiz (a public endpoint: authenticates and validates itself)', () => {
   it('grades through the database without passing a user ID, and logs no answers', async () => {
-    rpc.mockReturnValue(rpcResult({ data: { score: 2, total: 3, passed: false }, error: null }))
+    rpc.mockReturnValue(
+      rpcResult({ data: { score: 2, total: 3, passed: false, certified: false }, error: null }),
+    )
     expect(await submitQuiz({ lessonId: L, answers: { [Q]: O } })).toEqual({
       ok: true,
       score: 2,
       total: 3,
       passed: false,
+      certified: false,
     })
+    expect(sendEmail).not.toHaveBeenCalled()
     expect(rpc).toHaveBeenCalledWith('submit_quiz', { p_lesson_id: L, p_answers: { [Q]: O } })
     expect(log).toHaveBeenCalledWith('quiz_submitted', {
       userId: 'user-1',
@@ -80,6 +102,32 @@ describe('submitQuiz (a public endpoint: authenticates and validates itself)', (
       outcome: 'failed',
     })
     expect(JSON.stringify(log.mock.calls)).not.toContain(O)
+  })
+
+  it('on the pass that certifies, logs it and sends the certificate email (decision 2)', async () => {
+    rpc.mockReturnValue(
+      rpcResult({ data: { score: 3, total: 3, passed: true, certified: true }, error: null }),
+    )
+    expect(await submitQuiz({ lessonId: L, answers: { [Q]: O } })).toMatchObject({
+      ok: true,
+      certified: true,
+    })
+    expect(log).toHaveBeenCalledWith('certificate_issued', { userId: 'user-1', code: 'issued' })
+    expect(sendEmail).toHaveBeenCalledTimes(1)
+    const email = sendEmail.mock.calls[0]![0] as { to: string; subject: string; html: string }
+    expect(email.to).toBe('pat@example.com')
+    expect(email.subject).toBe("You're Carbon Certified")
+    expect(email.html).toContain('Hi Pat,')
+  })
+
+  it('still reports the certificate if the email step fails', async () => {
+    rpc.mockReturnValue(
+      rpcResult({ data: { score: 3, total: 3, passed: true, certified: true }, error: null }),
+    )
+    sendEmail.mockRejectedValue(new Error('provider down'))
+    expect(await submitQuiz({ lessonId: L, answers: { [Q]: O } })).toMatchObject({
+      certified: true,
+    })
   })
 
   it.each([
