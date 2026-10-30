@@ -1,10 +1,11 @@
 import 'server-only'
-import { cacheLife } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 import { requireUser } from '@/lib/auth/session'
 import { createPublicClient } from '@/lib/supabase/public'
 import { createSessionClient } from '@/lib/supabase/server'
 import { VerifyCode } from './format'
 import { type CertificationView, certificationView } from './view'
+import { CACHE_TAGS } from '@/lib/content/tags'
 
 export type Verification = {
   firstName: string
@@ -44,6 +45,7 @@ export type CertifiedStore = {
 export async function getCertifiedStores(): Promise<CertifiedStore[]> {
   'use cache'
   cacheLife('hours')
+  cacheTag(CACHE_TAGS.certifiedStores)
   const { data, error } = await createPublicClient().rpc('certified_stores')
   if (error) throw new Error('Could not load certified stores')
   return (data ?? []).map((s) => ({
