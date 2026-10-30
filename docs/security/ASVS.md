@@ -1,4 +1,6 @@
-# OWASP ASVS 5.0.0 Level 2 register (Tier C, security framework section 1)
+
+| 8.3.2 | 3 | Authorisation changes apply immediately | Level 3, met by design: every admin and learner check reads `profiles` and `auth.sessions` live, so a demotion, deactivation or MFA reset takes effect on the next call | Planned (Phase 6) |
+| 7.5.3 | 3 | Further authentication before highly sensitive operations | Level 3, done anyway for admins (control 03): a TOTP on this session in the last 5 minutes for role and MFA changes, store-code regeneration, certificate revoke and reinstate, learner deletion, exports and settings, checked inside the database function (`require_step_up`) | Planned (Phase 6) || 7.4.5 | 2 | Admins can end a user's or everyone's sessions | **Phase 6:** deactivating a learner, and resetting an admin's MFA, delete that user's sessions. Ending everyone's sessions stays a Supabase dashboard task (rare; documented in the runbooks) | Planned (Phase 6) || 7.4.2 | 1 | Sessions end when an account is disabled or deleted | Deleting the user removes its sessions. A deactivated profile gets nothing from `current_learner()`, and the app treats it as signed out. **Phase 6:** `admin_set_learner_active` also deletes the learner's `auth.sessions` rows in the same transaction | Met (DB test); Phase 6 session deletion Planned || 6.4.4 | 2 | Identity proofing when an MFA factor is lost | Admins enrol a backup authenticator on a second device. If both are lost, another admin resets the factors after the same identity check as the account recovery runbook (`PERMISSIONS.md`), with step-up and an audit row; with one admin, the Supabase dashboard runbook | Planned (Phase 6) || 6.3.3 | 2 | MFA, or a combination of factors, to access the application | **Not met for learners:** a magic link is a single factor. **Admins (Phase 6):** the magic link plus a TOTP authenticator app, required by `current_admin()` in every admin function (`aal2` read from `auth.sessions`) | **Exception EX-02** for learners (approved 29 Oct 2026); admins Planned (Phase 6) |# OWASP ASVS 5.0.0 Level 2 register (Tier C, security framework section 1)
 
 Started 29 October 2026 for Phase 3 (accounts and progress). Requirement IDs and levels come from the OWASP ASVS repository (`5.0/en`, master branch, read 29 October 2026). The summaries are ours; the ASVS text is the authority.
 
@@ -11,6 +13,12 @@ Started 29 October 2026 for Phase 3 (accounts and progress). Requirement IDs and
 - **Phase N:** due in a later phase
 
 Phase 3 plan: `docs/superpowers/plans/2026-10-29-phase-3-accounts-and-progress.md`.
+
+## V1 Encoding and Sanitization
+
+| ID | Level | Summary | How the Academy meets it | Status |
+|---|---|---|---|---|
+| 1.2.10 | 3 | CSV and formula injection | Level 3, done anyway because admin exports carry learner-typed names (T-50): RFC 4180 quoting on every field, and a leading `'` on any cell starting with `=`, `+`, `-`, `@`, tab, carriage return or null (`src/lib/admin/csv.ts`) | Planned (Phase 6) |
 
 ## V2 Validation and Business Logic
 
@@ -98,7 +106,7 @@ The Academy's only learner authentication is an **email magic link**. ASVS 5.0 t
 | 7.4.3 | 2 | Option to end other sessions after an authentication factor changes | Passwords can't be set. The email (the only factor) can change only with confirmation from both addresses. Learners get an email-changed notice, and "Sign out on all devices" is always on the dashboard | Met (local tests, 29 Oct 2026) |
 | 7.4.4 | 2 | Visible logout on every authenticated page | Dashboard, and the signed-in join and change-store views | Met (local: dashboard and signed-in join pages) |
 | 7.4.5 | 2 | Admins can end a user's or everyone's sessions | Phase 6 (admin area) | Phase 6 |
-| 7.5.1 | 2 | Re-authentication before changing sensitive attributes | Email change through the Auth API needs confirmation links from both the old and new addresses (`double_confirm_changes`), so control of the current mailbox is proven again. Passwords can't be set. The app offers no email-change screen | Met (local and staging, 29 Oct 2026) |
+| 7.5.1 | 2 | Re-authentication before changing sensitive attributes | Email change through the Auth API needs confirmation links from both the old and new addresses (`double_confirm_changes`), so control of the current mailbox is proven again. Passwords can't be set. The app offers no email-change screen. **Admins (Phase 6):** removing an MFA factor needs step-up (a fresh TOTP) | Met (local and staging, 29 Oct 2026) |
 | 7.5.2 | 2 | Users can view and end their active sessions | **Partly:** "Sign out on all devices" ends them all, but there's no list of sessions | **Exception EX-02** (approved 29 Oct 2026) |
 | 7.6.1 | 2 | RP and IdP session lifetimes | N/A: no federation | N/A |
 | 7.6.2 | 2 | A session is created only by explicit user action | The magic link opens a confirm page; the session starts only when the learner presses Continue (POST) | Met (local and staging preview: Continue required) |
@@ -109,7 +117,7 @@ The Academy's only learner authentication is an **email magic link**. ASVS 5.0 t
 |---|---|---|---|---|
 | 8.1.1 | 1 | Function- and data-level rules documented | `docs/security/PERMISSIONS.md` | Met (documented 29 Oct 2026); tests in Task 3 |
 | 8.1.2 | 2 | Field-level rules documented | `PERMISSIONS.md`: `store_code` not readable by learners; `role` and `store_id` not writable | Met (documented) |
-| 8.2.1 | 1 | Function-level access restricted | Grants on functions; `requireUser()` in actions. **Phase 4: EXECUTE revoked on the quiz helpers; only the four quiz functions are granted** (verified locally, 29 Oct 2026: `tests/db/quiz.test.ts`, mutation check, browser run) | Met (local tests, 29 Oct 2026) |
+| 8.2.1 | 1 | Function-level access restricted | Grants on functions; `requireUser()` in actions. **Phase 4: EXECUTE revoked on the quiz helpers; only the four quiz functions are granted** (verified locally, 29 Oct 2026: `tests/db/quiz.test.ts`, mutation check, browser run). **Phase 6: every `admin_*` function starts with `require_admin()`; an enumerated DB test calls each one as anon, a learner, an admin without MFA, a stale admin and a deactivated admin** | Met (local tests, 29 Oct 2026) |
 | 8.2.2 | 1 | Data-level access restricted (IDOR) | RLS on `current_learner()`; functions take no user ID. **Phase 4: quiz functions take no user ID; `quiz_attempts` RLS on `current_learner()`** (verified locally, 29 Oct 2026: `tests/db/quiz.test.ts`, mutation check, browser run). **Phase 5: certificates are read under RLS on `current_learner()`; the PDF route returns 404 for anyone else's** (verified locally, 30 Oct 2026: `tests/db/certification.test.ts`, mutation check, browser run) | Met (local tests, 29 Oct 2026) |
 | 8.2.3 | 2 | Field-level access restricted | Column grant on `stores`; no update grants on `profiles`. **Phase 4: no grant on `answer_options`, so `is_correct` is never readable; `quiz_attempts.answers` left out of the column grant** (verified locally, 29 Oct 2026: `tests/db/quiz.test.ts`, mutation check, browser run). **Phase 5: `/verify` returns six named fields (first name and last initial only); the feed four store fields** (verified locally, 30 Oct 2026: `tests/db/certification.test.ts`, mutation check, browser run) | Met (local tests, 29 Oct 2026) |
 | 8.3.1 | 1 | Authorisation enforced server-side | Postgres RLS and functions; Server Actions re-check; `proxy.ts` is never the access check | Met (local tests, 29 Oct 2026) |
@@ -134,7 +142,7 @@ The Academy's only learner authentication is an **email magic link**. ASVS 5.0 t
 | 16.2.4 | 2 | Logs in a common, readable format | One JSON object per line | Met (local tests, 29 Oct 2026) |
 | 16.2.5 | 2 | Sensitive data logged by protection level | The logger's types allow IDs and codes only, never emails, names, form data or tokens (T-22). Magic-link tokens sit in the URL fragment, so request logs never see them. Store codes in `/join/CODE` paths do appear in request logs: accepted and recorded in the inventory | Met (local tests, 29 Oct 2026) |
 | 16.3.1 | 2 | All authentication attempts logged, success and failure | Supabase Auth logs every sign-in; the app also logs `sign_in_succeeded` and `sign_in_failed` | Met (local: sign_in_succeeded logged) |
-| 16.3.2 | 2 | Failed authorisation attempts logged | **Partly:** failed store moves and progress saves are logged with their error code. RLS denials return empty results and aren't logged by Postgres by default | Partial (review in Phase 7 with log alerting) |
+| 16.3.2 | 2 | Failed authorisation attempts logged | **Partly:** failed store moves and progress saves are logged with their error code. RLS denials return empty results and aren't logged by Postgres by default. **Phase 6:** every refused `/admin` request logs `admin_denied`, and failed admin actions log `admin_action_failed` with the database code | Partial (review in Phase 7 with log alerting) |
 | 16.3.3 | 2 | Documented security events and control bypass attempts logged | Honeypot trips, unknown store codes, failed sign-ins; edge 429s appear in Netlify logs | Met (local tests, 29 Oct 2026) |
 | 16.3.4 | 2 | Unexpected errors and control failures logged | Server Action failures log their error code; `error.tsx` shows a generic page; Netlify captures uncaught exceptions | Met (local tests, 29 Oct 2026) |
 | 16.4.1 | 2 | Log injection prevented | `JSON.stringify` encodes every value; no free text is logged | Met (local tests, 29 Oct 2026) |

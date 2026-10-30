@@ -1265,7 +1265,7 @@ export function reportFilename(name: string, now = new Date()): string {
 ```
 
   **Tests:**
-  - **Formula characters:** each of `=`, `+`, `-`, `@`, tab and CR at the start gets the apostrophe. `=` in the middle doesn't. Numbers (including −1) aren't touched.
+  - **Formula characters:** each of `=`, `+`, `-`, `@`, tab, CR and null (ASVS 1.2.10) at the start gets the apostrophe. `=` in the middle doesn't. Numbers (including −1) aren't touched.
   - **Quoting:** quotes are doubled, and commas and newlines stay inside the quotes.
   - **Format:** the BOM is present and the line endings are CRLF.
   - **Filename:** the Brisbane date rolls over at 14:00 UTC.
